@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ability_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sword_strike"
+display_name = "Sword"
+kind = 0
+input_action = "attack"
+cooldown = 0.8
+windup = 0.15
+recovery = 0.25
+damage = 12
+hit_range = 2.3
+arc_degrees = 80.0
+max_targets = 1

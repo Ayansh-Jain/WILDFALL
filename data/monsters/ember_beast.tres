@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MonsterDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/monster_definition.gd" id="1"]
+[ext_resource type="Resource" path="res://data/abilities/claw.tres" id="2"]
+[ext_resource type="Resource" path="res://data/abilities/heavy_strike.tres" id="3"]
+[ext_resource type="Resource" path="res://data/abilities/pounce.tres" id="4"]
+[ext_resource type="Resource" path="res://data/abilities/roar.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = "ember_beast"
+display_name = "Ember Beast"
+max_health = 250
+walk_speed = 5.0
+sprint_speed = 7.2
+jump_velocity = 6.2
+stand_height = 2.5
+stand_eye = 2.3
+capsule_radius = 0.55
+can_crouch = false
+fov_bonus = 6.0
+max_stamina = 100.0
+sprint_drain = 22.0
+stamina_regen = 22.0
+abilities = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")]
+rig_id = "ember_beast"
+transform_time = 0.9
+min_reveal_duration = 12.0
+transform_cooldown = 20.0
+combat_lockout = 4.0
+transform_move_scale = 0.5

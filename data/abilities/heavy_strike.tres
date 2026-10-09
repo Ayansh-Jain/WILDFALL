@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ability_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heavy_strike"
+display_name = "Heavy Strike"
+kind = 0
+input_action = "heavy_attack"
+cooldown = 4.0
+windup = 0.85
+recovery = 0.4
+damage = 45
+hit_range = 3.3
+arc_degrees = 60.0
+max_targets = 4
+stun_on_hit = 0.4
+knockback = 2.5
+interruptible = true
+interrupt_damage = 15
+stagger_on_interrupt = 0.7

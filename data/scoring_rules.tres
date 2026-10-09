@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ScoringRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/scoring_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+base_score = 100
+min_score = 0
+prey_reward = 25
+prey_penalty = 5
+monster_defeat_penalty = 40
+monster_slayer_reward = 30
+monster_assist_reward = 15
+assist_window = 15.0
+escape_reward = 10
+escape_time = 15.0
+escape_distance = 20.0

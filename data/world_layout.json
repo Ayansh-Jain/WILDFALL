@@ -1,0 +1,200 @@
+{
+	"_doc": "WILDFALL world layout. Units are metres. Points are [x, z]; +x = east, -z = north. Heights are generated; 'h' values are offsets or absolute heights where noted.",
+
+	"world": {
+		"half_size": 340,
+		"playable_half": 272,
+		"cell": 2.0,
+		"water_level": 0.0,
+		"base_height": 4.0,
+		"chunk_cells": 34
+	},
+
+	"regions": [
+		{"name": "Elder Tree Grove", "center": [0, 0], "radius": 48},
+		{"name": "Ancient Ruins - Old Citadel", "center": [-160, -60], "radius": 62},
+		{"name": "Moonmere Lake", "center": [130, 40], "radius": 85},
+		{"name": "Hollow Deep Caves", "center": [-32, -212], "radius": 48},
+		{"name": "Watcher's Hill", "center": [-200, 190], "radius": 58},
+		{"name": "Sentinel Crag", "center": [215, -90], "radius": 58},
+		{"name": "Greyback Ridge", "center": [-225, -185], "radius": 55},
+		{"name": "Lakeside Castle Ruins", "center": [212, 150], "radius": 42},
+		{"name": "Sunken Chapel", "center": [-95, 130], "radius": 30},
+		{"name": "Old Ford", "center": [86, -214], "radius": 26},
+		{"name": "Reed Ford", "center": [22, 228], "radius": 24}
+	],
+	"default_region": "Deep Forest",
+
+	"rivers": [
+		{"name": "Silverrun North", "half_width": 7.0, "depth": 2.6, "bank": 10.0,
+			"points": [[68, -298], [70, -270], [74, -240], [96, -190], [100, -150], [92, -110], [108, -62], [118, -20]]},
+		{"name": "Silverrun South", "half_width": 6.5, "depth": 2.4, "bank": 10.0,
+			"points": [[100, 88], [80, 130], [58, 172], [34, 210], [12, 245], [-2, 270], [-6, 298]]}
+	],
+
+	"lake": {"name": "Moonmere", "center": [130, 40], "radii": [72, 55], "depth": 4.5, "shore": 14.0,
+		"island": {"center": [150, 32], "radius": 14, "height": 2.6}},
+
+	"fords": [
+		{"name": "Old Ford", "center": [86, -214], "radius": 11, "depth": 0.45},
+		{"name": "Reed Ford", "center": [23, 228], "radius": 10, "depth": 0.45}
+	],
+
+	"shallows": [
+		{"name": "Island Causeway", "a": [139, 100], "b": [148, 50], "half_width": 2.6, "depth": 0.4}
+	],
+
+	"bridges": [
+		{"name": "North Bridge", "style": "wood", "a": [82, -150], "b": [118, -150], "width": 3.4},
+		{"name": "Stone Bridge", "style": "stone", "a": [44, 164], "b": [72, 180], "width": 4.2}
+	],
+
+	"hills": [
+		{"name": "Watcher's Hill", "center": [-200, 190], "radius": 62, "height": 24, "rocky": 0.35},
+		{"name": "Sentinel Crag", "center": [215, -90], "radius": 58, "height": 26, "rocky": 0.7},
+		{"name": "East Downs", "center": [248, 40], "radius": 52, "height": 11, "rocky": 0.2},
+		{"name": "North-East Hills", "center": [158, -205], "radius": 38, "height": 13, "rocky": 0.5},
+		{"name": "Moss Knoll", "center": [-62, -92], "radius": 26, "height": 7, "rocky": 0.2},
+		{"name": "Fern Knoll", "center": [-112, 42], "radius": 26, "height": 6, "rocky": 0.1},
+		{"name": "Hunter's Rise", "center": [58, -42], "radius": 22, "height": 5, "rocky": 0.3},
+		{"name": "South Barrow", "center": [-40, 160], "radius": 24, "height": 6, "rocky": 0.2},
+		{"name": "Castle Mound", "center": [212, 150], "radius": 34, "height": 5, "rocky": 0.0}
+	],
+
+	"ridges": [
+		{"name": "Greyback Ridge", "a": [-252, -142], "b": [-196, -222], "radius": 32, "height": 24, "rocky": 0.8},
+		{"name": "North Wall", "a": [-200, -268], "b": [36, -270], "radius": 30, "height": 20, "rocky": 0.6},
+		{"name": "Crag Spine", "a": [212, -160], "b": [245, -40], "radius": 24, "height": 11, "rocky": 0.8}
+	],
+
+	"trails": [
+		{"name": "Grove to Citadel", "half_width": 2.4, "points": [[0, 0], [-40, -10], [-88, -28], [-120, -48], [-136, -58]]},
+		{"name": "Grove to Caves", "half_width": 2.2, "points": [[0, 0], [-6, -60], [-22, -120], [-32, -165], [-32, -176]]},
+		{"name": "Grove to North Bridge", "half_width": 2.4, "points": [[8, -10], [42, -58], [64, -110], [80, -148]]},
+		{"name": "North Bridge to Crag", "half_width": 2.2, "points": [[120, -150], [150, -132], [190, -104], [210, -92]]},
+		{"name": "Grove to Stone Bridge", "half_width": 2.4, "points": [[6, 12], [20, 78], [34, 138], [42, 162]]},
+		{"name": "Stone Bridge to Castle", "half_width": 2.4, "points": [[74, 182], [118, 176], [168, 160], [190, 152]]},
+		{"name": "Grove to Chapel", "half_width": 2.0, "points": [[-8, 10], [-48, 66], [-80, 108], [-84, 126], [-87, 142], [-95, 146]]},
+		{"name": "Chapel to Watchtower", "half_width": 2.0, "points": [[-95, 146], [-138, 164], [-172, 190], [-188, 212], [-200, 222]]},
+		{"name": "Citadel to Watchtower", "half_width": 2.2, "points": [[-160, -32], [-198, 30], [-214, 108], [-204, 176]]},
+		{"name": "Citadel to Caves", "half_width": 2.0, "points": [[-158, -88], [-118, -148], [-86, -196], [-72, -226]]},
+		{"name": "Caves to Old Ford", "half_width": 2.0, "points": [[-32, -176], [6, -196], [46, -208], [76, -214], [98, -216], [126, -212]]},
+		{"name": "Old Ford to Crag", "half_width": 2.0, "points": [[126, -212], [170, -180], [188, -144], [186, -116], [190, -104]]},
+		{"name": "West Lake Shore", "half_width": 2.0, "points": [[64, -110], [86, -60], [74, -10], [52, 30], [56, 80], [70, 118], [56, 160]]},
+		{"name": "East Lake Shore", "half_width": 2.0, "points": [[212, -86], [214, -20], [214, 50], [204, 110], [192, 130], [188, 150]]},
+		{"name": "South Lake Shore", "half_width": 2.0, "points": [[118, 176], [130, 120], [139, 102]]},
+		{"name": "Chapel to Reed Ford", "half_width": 2.0, "points": [[-90, 140], [-60, 186], [-18, 220], [10, 228], [36, 230], [70, 222], [118, 176]]},
+		{"name": "West Woods Loop", "half_width": 1.8, "points": [[-198, 30], [-236, -30], [-230, -96], [-190, -124], [-158, -88]]},
+		{"name": "South-West Woods", "half_width": 1.8, "points": [[-138, 162], [-136, 214], [-90, 236], [-60, 186]]},
+		{"name": "Grove to Fern Knoll", "half_width": 1.8, "points": [[-40, -10], [-80, 20], [-112, 40], [-150, 60], [-198, 30]]},
+		{"name": "Sentinel Overlook", "half_width": 1.8, "points": [[210, -92], [216, -90]]}
+	],
+
+	"forest_zones": [
+		{"center": [-205, 60], "radius": 115, "density": 0.9},
+		{"center": [-110, 205], "radius": 95, "density": 0.85},
+		{"center": [-135, -165], "radius": 85, "density": 0.8},
+		{"center": [-70, -40], "radius": 60, "density": 0.55},
+		{"center": [30, -150], "radius": 62, "density": 0.65},
+		{"center": [172, -165], "radius": 80, "density": 0.75},
+		{"center": [145, 225], "radius": 80, "density": 0.75},
+		{"center": [255, -10], "radius": 55, "density": 0.55},
+		{"center": [-20, 95], "radius": 60, "density": 0.6},
+		{"center": [-250, 230], "radius": 60, "density": 0.7}
+	],
+	"base_forest_density": 0.22,
+
+	"clearings": [
+		{"name": "Grove", "center": [0, 0], "radius": 34},
+		{"name": "West Clearing", "center": [-236, -32], "radius": 15},
+		{"name": "South-West Clearing", "center": [-136, 214], "radius": 15},
+		{"name": "Hunter's Camp", "center": [58, -42], "radius": 13},
+		{"name": "North-East Hollow", "center": [166, -232], "radius": 13},
+		{"name": "Barrow Top", "center": [-40, 160], "radius": 10},
+		{"name": "Fern Knoll", "center": [-112, 42], "radius": 9},
+		{"name": "East Meadow", "center": [248, 40], "radius": 22}
+	],
+
+	"sites": [
+		{"name": "Elder Tree", "type": "landmark", "center": [0, 0], "radius": 30, "blend": 18, "height_offset": 7.0},
+		{"name": "Old Citadel", "type": "citadel", "center": [-160, -60], "radius": 34, "blend": 16},
+		{"name": "Watchtower", "type": "watchtower", "center": [-200, 190], "radius": 11, "blend": 10},
+		{"name": "Sunken Chapel", "type": "chapel", "center": [-95, 130], "radius": 15, "blend": 10},
+		{"name": "Lakeside Castle", "type": "castle", "center": [212, 150], "radius": 24, "blend": 12},
+		{"name": "Island Shrine", "type": "shrine", "center": [150, 32], "radius": 0, "blend": 0},
+		{"name": "Ferryman's Hut", "type": "hut", "center": [112, -224], "radius": 7, "blend": 6},
+		{"name": "Sentinel Summit", "type": "summit", "center": [215, -90], "radius": 7, "blend": 20, "height_offset": -2.5},
+		{"name": "Hunter's Camp", "type": "camp", "center": [58, -42], "radius": 9, "blend": 6}
+	],
+
+	"cave": {
+		"name": "Hollow Deep",
+		"origin": [-64, -244],
+		"cell": 4.0,
+		"floor_height": 9.0,
+		"dome_height": 9.0,
+		"dome_slope": 0.95,
+		"ceiling": {"#": 4.0, "C": 6.5, "m": 4.0},
+		"_legend": "'.' rock, '#' tunnel, 'C' chamber (tall), 'm' mouth (open to sky at its outer edge)",
+		"map": [
+			"................",
+			"......####......",
+			".....##..##.....",
+			"....##....##....",
+			"mmm##.....##....",
+			"..........##....",
+			".....######.....",
+			".....#CCCC#.....",
+			".....CCCCCC.....",
+			".....CCCCCC.....",
+			"......CCCC......",
+			".......##.......",
+			".......##.......",
+			".......mm.......",
+			".......mm.......",
+			".......mm......."
+		]
+	},
+
+	"waterfall": {"top": [68, -318], "bottom": [68, -299]},
+	"river_sink": {"center": [-6, 300]},
+
+	"player_spawns": [
+		[-245, -150], [-255, 30], [-235, 125], [-150, 255], [-60, 255],
+		[110, 250], [245, 225], [255, 75], [245, -215], [128, -258], [-140, -250]
+	],
+
+	"scroll_spawns": [
+		{"name": "citadel_courtyard", "pos": [-170, -50]},
+		{"name": "citadel_keep", "pos": [-158, -61.5], "y_hint": "site:Old Citadel:3.2"},
+		{"name": "cave_chamber", "pos": [-32, -206], "y_hint": "cave_floor"},
+		{"name": "island_shrine", "pos": [150, 34.2]},
+		{"name": "watchtower_top", "pos": [-200, 190], "y_hint": "site:Watchtower:6.0"},
+		{"name": "sunken_chapel", "pos": [-95, 124]},
+		{"name": "lakeside_castle", "pos": [212, 154]},
+		{"name": "ferryman_hut", "pos": [112, -224]},
+		{"name": "west_clearing", "pos": [-236, -34]},
+		{"name": "southwest_clearing", "pos": [-136, 216]},
+		{"name": "sentinel_summit", "pos": [216, -88]},
+		{"name": "northeast_hollow", "pos": [166, -232]}
+	],
+
+	"points_of_interest": [
+		{"name": "Elder Tree", "pos": [0, 30]},
+		{"name": "Old Citadel gate", "pos": [-128, -58]},
+		{"name": "Old Citadel keep", "pos": [-160, -60]},
+		{"name": "Cave south mouth", "pos": [-32, -172]},
+		{"name": "Cave chamber", "pos": [-32, -206], "y_hint": "cave_floor"},
+		{"name": "North Bridge", "pos": [76, -150]},
+		{"name": "Old Ford", "pos": [70, -214]},
+		{"name": "Moonmere west shore", "pos": [52, 30]},
+		{"name": "Island causeway", "pos": [137, 108]},
+		{"name": "Stone Bridge", "pos": [38, 160]},
+		{"name": "Reed Ford", "pos": [6, 228]},
+		{"name": "Sunken Chapel", "pos": [-95, 145]},
+		{"name": "Watchtower", "pos": [-200, 212]},
+		{"name": "Lakeside Castle", "pos": [180, 154]},
+		{"name": "Sentinel Crag", "pos": [200, -100]},
+		{"name": "Greyback Ridge", "pos": [-222, -182]}
+	]
+}

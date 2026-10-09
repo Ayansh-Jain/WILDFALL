@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ability_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "roar"
+display_name = "Roar"
+kind = 2
+input_action = "ability_2"
+cooldown = 15.0
+windup = 0.35
+recovery = 0.6
+radius = 10.0
+reveal_radius = 28.0
+mark_duration = 4.0
+effect_duration = 2.5
+slow_factor = 0.6

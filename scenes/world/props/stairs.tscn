@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pieces/ruin_piece.gd" id="1"]
+
+[node name="Stairs" type="StaticBody3D"]
+script = ExtResource("1")
+kind = 3
+size = Vector3(2.5, 2, 4)
+broken = 0.0

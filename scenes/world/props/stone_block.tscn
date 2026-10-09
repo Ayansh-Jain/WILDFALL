@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pieces/ruin_piece.gd" id="1"]
+
+[node name="StoneBlock" type="StaticBody3D"]
+script = ExtResource("1")
+kind = 10
+size = Vector3(2, 1, 1)
+broken = 0.0

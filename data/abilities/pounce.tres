@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ability_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pounce"
+display_name = "Pounce"
+kind = 1
+input_action = "ability_1"
+cooldown = 8.0
+windup = 0.2
+recovery = 0.3
+damage = 15
+radius = 2.4
+stun_on_hit = 0.3
+move_distance = 9.0
+leap_height = 1.3

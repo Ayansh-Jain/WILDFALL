@@ -1,0 +1,63 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/interactions/scroll.gd" id="1_scroll"]
+[ext_resource type="Script" path="res://scripts/interactions/interactable.gd" id="2_int"]
+[ext_resource type="Material" path="res://assets/materials/glow_magic.tres" id="3_glow"]
+
+[sub_resource type="SphereShape3D" id="Sphere_1"]
+radius = 0.6
+
+[sub_resource type="BoxMesh" id="Spark_mesh"]
+material = ExtResource("3_glow")
+size = Vector3(0.035, 0.035, 0.035)
+
+[sub_resource type="Curve" id="Fade"]
+_data = [Vector2(0, 0), 0.0, 4.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -1.5, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Grad"]
+colors = PackedColorArray(0.55, 1, 0.9, 1, 1, 0.85, 0.5, 1)
+
+[node name="Scroll" type="Node3D" groups=["scroll"]]
+script = ExtResource("1_scroll")
+
+[node name="Visual" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+light_color = Color(0.5, 1, 0.88, 1)
+light_energy = 1.4
+omni_range = 5.5
+omni_attenuation = 1.6
+
+[node name="Sparkles" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+amount = 28
+lifetime = 2.4
+mesh = SubResource("Spark_mesh")
+emission_shape = 1
+emission_sphere_radius = 0.55
+direction = Vector3(0, 1, 0)
+spread = 25.0
+gravity = Vector3(0, 0.15, 0)
+initial_velocity_min = 0.05
+initial_velocity_max = 0.25
+scale_amount_curve = SubResource("Fade")
+color_ramp = SubResource("Grad")
+
+[node name="Hum" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+volume_db = -6.0
+unit_size = 2.5
+max_distance = 22.0
+attenuation_filter_cutoff_hz = 3000.0
+
+[node name="Interactable" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+script = ExtResource("2_int")
+prompt_text = "Take the scroll"
+max_view_angle = 45.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Interactable"]
+shape = SubResource("Sphere_1")
