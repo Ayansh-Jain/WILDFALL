@@ -6,13 +6,19 @@ extends Node3D
 ## Collision: trunks/rocks/logs block movement (layer "world"); bushes only
 ## block sight (layer "foliage_sight") so they hide players without trapping them.
 
-## prop -> [visibility range (m), casts shadow]
+## prop -> [visibility range (m), casts shadow, far-LOD range]. Props with a far
+## range get a detailed near mesh up to the first value and a lighter "_far"
+## mesh beyond it.
 const RENDER := {
-	"pine": [340.0, true], "fir": [340.0, true], "oak": [320.0, true], "dead_tree": [300.0, true], "birch": [300.0, true],
+	"pine": [72.0, true, 330.0], "fir": [72.0, true, 330.0], "oak": [72.0, true, 310.0], "birch": [68.0, true, 290.0],
+	"dead_tree": [300.0, true],
 	"rock0": [260.0, true], "rock1": [260.0, true], "rock2": [260.0, true], "rock3": [260.0, true],
-	"log": [150.0, true], "bush0": [170.0, true], "bush1": [170.0, true], "bush2": [170.0, true],
-	"fern": [60.0, false], "grass": [48.0, false], "reeds": [90.0, false], "mushrooms": [75.0, false],
+	"log": [150.0, true], "bush0": [80.0, true, 170.0], "bush1": [80.0, true, 170.0], "bush2": [80.0, true, 170.0],
+	"fern": [50.0, false], "grass": [36.0, false], "pebble": [40.0, false], "reeds": [90.0, false], "mushrooms": [75.0, false],
 }
+## Ground clutter uses small chunks so it fades in smoothly around the player.
+const SMALL_CHUNK := ["grass", "fern", "pebble", "mushrooms"]
+const SMALL_CHUNK_SIZE := 20.0
 
 var counts := {}
 var step_ms := {}  ## pass -> milliseconds (for profiling)
@@ -101,12 +107,14 @@ func _occupy(p: Vector2, r: float) -> void:
 	_occupied[c].append([p, r])
 
 
-func _chunk_key(p: Vector2) -> String:
-	return "%d|%d" % [floor(p.x / _chunk_size), floor(p.y / _chunk_size)]
+func _chunk_key(p: Vector2, size := -1.0) -> String:
+	var s := _chunk_size if size <= 0.0 else size
+	return "%d|%d" % [floor(p.x / s), floor(p.y / s)]
 
 
 func _add_instance(prop: String, xform: Transform3D, tint: Color) -> void:
-	var key := prop + "|" + _chunk_key(Vector2(xform.origin.x, xform.origin.z))
+	var size := SMALL_CHUNK_SIZE if prop in SMALL_CHUNK else -1.0
+	var key := prop + "|" + _chunk_key(Vector2(xform.origin.x, xform.origin.z), size)
 	if not _instances.has(key):
 		_instances[key] = []
 	_instances[key].append([xform, tint])
@@ -298,8 +306,18 @@ func _scatter_clutter() -> void:
 			return
 		var s := _rng.randf_range(0.7, 1.35)
 		_add_instance("fern", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _ground(x, z, 0.05)), _tint(0.2)))
+	# Pebbles and small stones on the forest floor and along trails
+	_jittered_cells(3.0, half, func(x: float, z: float) -> void:
+		var f := _td.sample(_td.forest, x, z)
+		if _rng.randf() > 0.12 + f * 0.4:
+			return
+		if _td.height_at(x, z) < wl + 0.3 or _td.is_hole_at(x, z):
+			return
+		var s := _rng.randf_range(0.07, 0.22)
+		var b := Basis(Vector3.UP, _rng.randf() * TAU) * Basis(Vector3.RIGHT, _rng.randf_range(-0.4, 0.4))
+		_add_instance("pebble", Transform3D(b.scaled(Vector3.ONE * s), _ground(x, z, 0.04 * s)), _tint(0.15)))
 	# Grass tufts in open ground
-	_jittered_cells(2.0, half, func(x: float, z: float) -> void:
+	_jittered_cells(1.6, half, func(x: float, z: float) -> void:
 		var u := _rng.randf()
 		if u > 0.42:
 			return
@@ -342,19 +360,29 @@ func _emit_multimeshes() -> void:
 		var parts: PackedStringArray = key.split("|")
 		var prop := parts[0]
 		var list: Array = _instances[key]
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_colors = true
-		mm.mesh = PropMeshes.get_mesh(prop)
-		mm.instance_count = list.size()
-		for i in list.size():
-			mm.set_instance_transform(i, list[i][0])
-			mm.set_instance_color(i, list[i][1])
-		var mmi := MultiMeshInstance3D.new()
-		mmi.name = key.replace("|", "_")
-		mmi.multimesh = mm
 		var r: Array = RENDER.get(prop, [200.0, true])
-		mmi.visibility_range_end = r[0]
-		mmi.visibility_range_end_margin = 8.0
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if r[1] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(mmi)
+		if r.size() > 2:
+			_emit(key, prop, list, 0.0, r[0], r[1])
+			_emit(key + "|far", prop + "_far", list, r[0] - 6.0, r[2], false)
+		else:
+			_emit(key, prop, list, 0.0, r[0], r[1])
+
+
+func _emit(key: String, mesh_name: String, list: Array, begin: float, end: float, shadows: bool) -> void:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = PropMeshes.get_mesh(mesh_name)
+	mm.instance_count = list.size()
+	for i in list.size():
+		mm.set_instance_transform(i, list[i][0])
+		mm.set_instance_color(i, list[i][1])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = key.replace("|", "_")
+	mmi.multimesh = mm
+	mmi.visibility_range_begin = begin
+	mmi.visibility_range_begin_margin = 6.0 if begin > 0.0 else 0.0
+	mmi.visibility_range_end = end
+	mmi.visibility_range_end_margin = 6.0
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mmi)

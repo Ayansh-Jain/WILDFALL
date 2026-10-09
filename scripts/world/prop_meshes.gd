@@ -6,6 +6,8 @@ extends RefCounted
 
 const FOLIAGE_MAT := preload("res://assets/materials/foliage.tres")
 const STONE_MAT := preload("res://assets/materials/stone.tres")
+const ROCK_MAT := preload("res://assets/materials/rock.tres")
+const BARK_MAT := preload("res://assets/materials/bark.tres")
 const GLOW_MAT := preload("res://assets/materials/glow_magic.tres")
 
 const BARK := Color(0.24, 0.17, 0.12)
@@ -24,23 +26,31 @@ static var _cache := {}
 static func get_mesh(prop: String) -> Mesh:
 	if not _cache.has(prop):
 		var mesh: Mesh
-		match prop.rstrip("0123456789"):
-			"pine": mesh = _build_pine(prop)
-			"fir": mesh = _build_fir(prop)
-			"oak": mesh = _build_oak(prop)
-			"dead_tree": mesh = _build_dead_tree(prop)
-			"birch": mesh = _build_birch(prop)
-			"bush": mesh = _build_bush(prop)
-			"fern": mesh = _build_fern(prop)
-			"grass": mesh = _build_grass(prop)
+		var far := prop.ends_with("_far")
+		var base := prop.trim_suffix("_far")
+		var detail := 0.4 if far else 1.0
+		match base.rstrip("0123456789"):
+			"pine": mesh = FoliageMeshes.conifer(10.4, 0.3, 2.6, 1.0, 11, detail)
+			"fir": mesh = FoliageMeshes.conifer(14.0, 0.44, 3.0, 0.78, 12, detail)
+			"oak": mesh = FoliageMeshes.broadleaf(4.4, 0.5, Vector3(0, 5.8, 0), Vector3(2.9, 2.1, 2.9), 46, Color(0.95, 1.0, 0.9), false, 13, detail)
+			"birch": mesh = FoliageMeshes.broadleaf(6.0, 0.22, Vector3(0, 7.0, 0), Vector3(1.7, 2.6, 1.7), 30, Color(1.08, 1.12, 0.82), true, 15, detail)
+			"dead_tree": mesh = FoliageMeshes.dead_tree(14)
+			"bush": mesh = FoliageMeshes.bush(_variant(base), detail)
+			"fern": mesh = FoliageMeshes.fern()
+			"grass": mesh = FoliageMeshes.grass()
 			"reeds": mesh = _build_reeds(prop)
-			"rock": mesh = _build_rock(prop)
+			"rock": mesh = _build_rock(base)
+			"pebble": mesh = _build_rock("rock1")
 			"log": mesh = _build_log(prop)
 			"mushrooms": mesh = _build_mushrooms(prop)
 			_: push_error("PropMeshes: unknown prop '%s'" % prop)
 		_cache[prop] = mesh
 	return _cache[prop]
 
+
+## Props with a lighter far-distance mesh ("<prop>_far").
+static func has_lod(prop: String) -> bool:
+	return prop.rstrip("0123456789") in ["pine", "fir", "oak", "birch", "bush"]
 
 ## Trunk collision radius at scale 1 (0 = no movement collision).
 const TRUNK_RADIUS := {
@@ -175,7 +185,8 @@ static func _build_rock(p: String) -> Mesh:
 		var nrm := (b - a).cross(c - a).normalized()
 		var col := ROCK.lerp(MOSS, smoothstep(0.55, 0.9, nrm.y) * 0.8)
 		k.add_tri(a, b, c, col)
-	var mesh := k.to_mesh(STONE_MAT)
+	k.smooth_normals()
+	var mesh := k.to_mesh(ROCK_MAT)
 	mesh.set_meta("hull", tmp.verts)
 	return mesh
 
@@ -183,10 +194,10 @@ static func _build_rock(p: String) -> Mesh:
 static func _build_log(_p: String) -> Mesh:
 	var k := MeshKit.new(50, 0.08)
 	var t := Transform3D(Basis(Vector3.FORWARD, PI * 0.5), Vector3(3.0, 0.35, 0))
-	k.add_cylinder(t, 0.36, 0.3, 6.0, 7, BARK_DARK, 0, 0, true, Color(0.42, 0.33, 0.22))
-	k.add_cylinder(Transform3D(Basis(Vector3.FORWARD, 1.0), Vector3(-1.0, 0.45, 0)), 0.1, 0.03, 1.1, 4, BARK_DARK)
-	k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(1.4, 0.3, 0.7)), Vector3(0.5, 0.68, 0)), 0.45, MOSS, false, 0.2)
-	return k.to_mesh(FOLIAGE_MAT)
+	k.add_cylinder(t, 0.36, 0.3, 6.0, 9, Color(0.8, 0.75, 0.7), 0, 0, true, Color(1.0, 0.85, 0.65))
+	k.add_cylinder(Transform3D(Basis(Vector3.FORWARD, 1.0), Vector3(-1.0, 0.45, 0)), 0.1, 0.03, 1.1, 5, Color(0.8, 0.75, 0.7))
+	k.smooth_normals()
+	return k.to_mesh(BARK_MAT)
 
 
 static func _build_mushrooms(_p: String) -> Mesh:

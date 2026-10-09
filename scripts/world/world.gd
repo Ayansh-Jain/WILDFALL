@@ -25,6 +25,8 @@ var timings := {}
 
 func _ready() -> void:
 	moon.rotation_degrees = moon_rotation
+	# The water fakes its moon reflection; point it at the actual moon.
+	WATER_MAT.set_shader_parameter("moon_dir", moon.global_transform.basis.z)
 
 
 func generate() -> void:

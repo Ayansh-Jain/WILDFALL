@@ -1,6 +1,6 @@
-# WILDFALL — Phases 1–2: World, Secret Identity and Combat
+# WILDFALL â€” Phases 1â€“2: World, Secret Identity and Combat
 
-First-person dark-fantasy game for 8–10 players (multiplayer comes in Phase 3).
+First-person dark-fantasy game for 8â€“10 players (multiplayer comes in Phase 3).
 
 - **Phase 1:** the world, the player controller, hiding / line of sight, and the scroll.
 - **Phase 2:** the scroll grants a hidden monster identity (the Ember Beast), plus
@@ -16,7 +16,7 @@ First-person dark-fantasy game for 8–10 players (multiplayer comes in Phase 3)
 
 1. Open Godot 4.7, **Import** `Game/project.godot`, then press **F5**.
    If the editor already had the project open while these files were created, use
-   **Project → Reload Current Project** first (do not save project settings over the new
+   **Project â†’ Reload Current Project** first (do not save project settings over the new
    `project.godot`).
 2. Command line (from the `Game` folder):
    `"<path>\Godot_v4.7.2-stable_win64.exe" --path .`
@@ -33,15 +33,15 @@ behind a short loading screen.
 | Jump / swim up | Space | | Debug overlay | F3 |
 | Sprint | Shift | | Crouch / dive | Ctrl or C |
 
-**Changing controls:** press **Esc → Controls**, click a binding and press the new key or
+**Changing controls:** press **Esc â†’ Controls**, click a binding and press the new key or
 mouse button (Esc cancels, *Reset to defaults* restores). Bindings and the options under
-**Esc → Settings** (mouse sensitivity, invert Y, FOV, head bob, volume) are saved to
+**Esc â†’ Settings** (mouse sensitivity, invert Y, FOV, head bob, volume) are saved to
 `user://settings.cfg` (on Windows: `%APPDATA%\Godot\app_userdata\WildFall\settings.cfg`).
 Default bindings live in `DEFAULT_BINDINGS` in `scripts/managers/settings.gd`.
 Movement tuning (speeds, jump, crouch, swimming, step height, head bob) is exported on the
 `Player` node (`scenes/player/player.tscn`).
 
-**Esc → Game → Unstuck** returns you to the nearest spawn. Falling below the world respawns
+**Esc â†’ Game â†’ Unstuck** returns you to the nearest spawn. Falling below the world respawns
 you automatically.
 
 ## Test the scroll
@@ -79,7 +79,7 @@ watchtower top, chapel, castle, hut, clearings, summit). Every marker is validat
 start-up (ground, not underwater, walkable slope, no geometry overlap). Markers that fail
 are skipped and reported. Nothing on screen reveals the scroll in normal play.
 
-## Phase 2 — Secret identity and combat
+## Phase 2 â€” Secret identity and combat
 
 The loop: explore, find the scroll, gain monster powers, approach other players, choose
 whether to reveal, then fight or escape, and gain or lose Power. Phase 2 has no networking:
@@ -95,7 +95,7 @@ you play against **simulated opponents** (four "Wanderers" spawn by default; set
 | R (`ability_2`) | Ward | Roar |
 | F (`transform`) | Reveal the beast (only if you hold the scroll's power) | Return to human (when allowed) |
 
-All of these keys can be rebound in **Esc → Controls**. A hidden monster has exactly the
+All of these keys can be rebound in **Esc â†’ Controls**. A hidden monster has exactly the
 human moveset, so its actions give nothing away.
 
 ### Testing the mechanics (debug runs)
@@ -125,11 +125,11 @@ All of these are data: `data/abilities/*.tres`, `data/forms/human.tres`,
 
 | Ability | Damage | Range / radius | Wind-up | Cooldown | Notes |
 |---|---|---|---|---|---|
-| Sword strike (human) | 12 | 2.3 m, 80° cone | 0.15 s | 0.8 s | one target |
+| Sword strike (human) | 12 | 2.3 m, 80Â° cone | 0.15 s | 0.8 s | one target |
 | Dodge (human) | none | 5 m dash | none | 1.4 s | 25 stamina, 0.25 s invulnerable, stopped by walls |
 | Ward (human) | 10 | 6 m, needs line of sight | none | 8 s | 2 charges per life; stuns revealed beasts 2 s; knockback; ignores hidden monsters |
-| Claw | 18 | 2.8 m, 70° cone | 0.18 s | 0.7 s | needs a valid target in range and facing |
-| Heavy Strike | 45 | 3.3 m, 60° cone, up to 4 targets | 0.85 s (ground telegraph) | 4 s | 0.4 s stun and knockback; interrupted by a stun or 15+ damage during the wind-up (0.7 s stagger); dodge it with invulnerability or by leaving the cone |
+| Claw | 18 | 2.8 m, 70Â° cone | 0.18 s | 0.7 s | needs a valid target in range and facing |
+| Heavy Strike | 45 | 3.3 m, 60Â° cone, up to 4 targets | 0.85 s (ground telegraph) | 4 s | 0.4 s stun and knockback; interrupted by a stun or 15+ damage during the wind-up (0.7 s stagger); dodge it with invulnerability or by leaving the cone |
 | Pounce | 15 on landing | 9 m leap, 2.4 m landing radius | 0.2 s | 8 s | 0.3 s stun; walls stop it |
 | Roar | none | 10 m pressure / 28 m reveal | 0.35 s | 15 s | slows to 60% and blocks sprinting for 2.5 s; marks players within 28 m for 4 s, on the roaring player's HUD only |
 
@@ -152,8 +152,8 @@ combat):
 | Event | Change |
 |---|---|
 | Start | 100 |
-| A revealed beast defeats a player | +25 for the beast, −5 for the player |
-| A revealed beast is defeated | −40 for the beast, +30 for the final blow, +15 for each other player who damaged it in the last 15 s |
+| A revealed beast defeats a player | +25 for the beast, âˆ’5 for the player |
+| A revealed beast is defeated | âˆ’40 for the beast, +30 for the final blow, +15 for each other player who damaged it in the last 15 s |
 | A player hurt by a beast survives 15 s and gets at least 20 m away | +10 |
 
 Every award has a unique key, so a replayed or duplicated event never pays twice.
@@ -189,6 +189,20 @@ Every award has a unique key, so a replayed or duplicated event never pays twice
   (sprint, dodge, ward, cover), and the brave ones fight back. Hunters stalk hidden, reveal
   up close, chase, and give up without line of sight.
 
+## Visual overhaul (environment, lighting, first-person rig)
+
+The map, collision, spawns and gameplay are unchanged; only materials, meshes and lighting were upgraded in place.
+
+- **Terrain** (ssets/materials/terrain.gdshader): Poly Haven CC0 photo textures (grass, leaf litter, rocky trail, mud, cliff rock, snow, paving) with world-space normal maps, two-scale sampling against tiling, triplanar rock on slopes, snow on the high mountains. Layers are only sampled where present.
+- **Vegetation** (scripts/world/foliage_meshes.gd): pines, firs, oaks, birches, bushes, ferns and grass are now textured bark trunks plus alpha-cut foliage cards (textures painted by 	ools/generate_foliage_textures.gd). Trees and bushes have a lighter far LOD (switch at ~70 m). Trunk sizes and collision are identical to before. Pebble clutter added.
+- **Stone, rock, cave, ruins** (stone_tri.gdshader): triplanar photo-textured stone with normal maps and moss; stone.tres keeps its name, so every ruin, bridge and dais picked it up in place. Boulders use ock.tres, the cave cave_rock.tres.
+- **Water**: Fresnel sky reflection, layered ripples and a moon glitter path aimed at the real moon.
+- **Lighting**: AgX tonemapping, cooler and brighter moonlight, balanced ambient fill, low ground mist, thinner distance fog so mountain silhouettes read, softer bloom, moonlit clouds and a proper moon in the sky shader.
+- **First-person rig** (scripts/player/fp_arms.gd, iew_model.gd): modelled longsword (diamond-section blade, bronze guard, wrapped grip, pommel), gloved hands with fingers, leather bracers, belt lantern; idle breathing, walk bob, lowered sprint pose, look sway, landing dip and a wind-up/slash/recover attack.
+- Texture credits: ssets/textures/CREDITS.txt.
+
+Profiling switches for the screenshot tour: --clean (no overlay), --no-shadows, --hide=<multimesh prefix>, --shadow-dist=N, --lod=N, --vsync, --with-bots.
+
 ## Automated tests
 
 ```
@@ -212,7 +226,7 @@ physics:
 - **identity** (Phase 2): collecting once; refusal of a second collection by anyone; public vs. private views; identical scene trees for hidden monsters and humans; no identity in the overlay; transform rules (no powers, no room, reveal lock, cooldown, combat lockout); camera and mouse look during the transformation; powers kept after returning to human.
 - **combat**: claw wind-up, exact damage, cooldown; range, facing and wall checks; no damage from proximity alone; heavy-strike wind-up, stun, dodge by invulnerability, stepping out, interruption by ward or damage; stunned players can't act; pounce distance, landing hit, cooldown and walls; roar slow and private marks; the human sword.
 - **defense**: stamina drain, exhaustion and regeneration; dodge distance, cost, invulnerability window, walls and spam limit; ward stun, damage, knockback, line of sight, charges and ignoring hidden monsters; humans out-sprint the beast; a ward opens a gap; hunters lose you behind cover; a chase comparing a human using its tools with one standing still.
-- **power**: base score; prey reward and penalty; slayer and assist rewards; monster penalty; escape reward; every award applied exactly once, even when events are replayed; defeat → respawning → valid state for both humans and monsters; respawn protection and camera; invalid state transitions refused.
+- **power**: base score; prey reward and penalty; slayer and assist rewards; monster penalty; escape reward; every award applied exactly once, even when events are replayed; defeat â†’ respawning â†’ valid state for both humans and monsters; respawn protection and camera; invalid state transitions refused.
 - **soak**: one hunter and five wanderers fighting freely for three simulated minutes, checking state invariants on every player every second.
 
 Visual and performance check (windowed; saves PNGs and prints frame times):
@@ -220,7 +234,7 @@ Visual and performance check (windowed; saves PNGs and prints frame times):
 
 ## The world
 
-About 600 × 600 m of playable ground, ringed by impassable mountains (terrain extends to
+About 600 Ã— 600 m of playable ground, ringed by impassable mountains (terrain extends to
 680 m). The layout is hand-authored in **`data/world_layout.json`**: regions, rivers,
 lake, fords, bridges, hills, ridges, trails, forest zones, clearings, sites, the cave map,
 spawns, scroll markers and points of interest. Edit that file and rerun to reshape the map.
@@ -289,18 +303,18 @@ collision lives in batched static bodies (`StaticBatch`): trunks, rocks and logs
 Measured with `screenshot_tour` on an Intel i5-1235U with Iris Xe graphics (a 15 W laptop
 chip), over 22 viewpoints, during a 120 Hz session:
 
-| | 1280 × 720 | 1920 × 1080 |
+| | 1280 Ã— 720 | 1920 Ã— 1080 |
 |---|---|---|
 | Uncapped average frame | 7.4 ms (~134 fps) | 10.9 ms (~92 fps) |
 | VSync on | 120 fps on gameplay views (p95 about 10 ms) | 60 fps (p95 about 23 ms, occasional missed frames) |
 
-Draw calls stay around 250–500. Phase 2 re-measured with four bots plus the beast on screen:
+Draw calls stay around 250â€“500. Phase 2 re-measured with four bots plus the beast on screen:
 about 7.3 ms (~138 fps) at 720p, the same as before.
 
 ## Known limitations
 
 - The world is generated at runtime, so `world.tscn` looks empty in the editor. Ruin pieces preview individually, and the screenshot tour, F6 and noclip are the ways to inspect the map.
-- Tree and rock collision uses server-side bodies, so *Debug → Visible Collision Shapes* does not draw it.
+- Tree and rock collision uses server-side bodies, so *Debug â†’ Visible Collision Shapes* does not draw it.
 - Water is one flat plane at height 0. Rivers do not flow downhill, and the waterfall and river exit are visual set pieces.
 - The terrain is a heightfield. The cave is built from blocky box geometry with rock dressing.
 - Some mountain gullies past ~300 m can be climbed partway. The terrain edge is a fallback, and falling off the world respawns you.
@@ -312,7 +326,7 @@ Phase 2:
 
 - No networking. Opponents are bots. `Combat` and `GameState` are written as the authority, but nothing is replicated yet, and "private" messages are local signals that Phase 3 must turn into per-peer RPCs.
 - The characters are procedural placeholders: rigid low-poly parts animated in code, not skinned meshes. They follow the reference sheets' silhouettes and palettes, not their detail. Swap in real models through `AvatarVisual.create_rig()`.
-- Balance values are prototypes. In the open forest, the flee bot survives far longer than a player standing still (about 27–30 s versus 5–6 s) but does not reliably shake the hunter. Escaping cleanly depends on breaking line of sight, which the tests show separately.
+- Balance values are prototypes. In the open forest, the flee bot survives far longer than a player standing still (about 27â€“30 s versus 5â€“6 s) but does not reliably shake the hunter. Escaping cleanly depends on breaking line of sight, which the tests show separately.
 - The human's only attack is a light sword strike; a group of brave bots can wear a beast down. The bow from the reference sheet isn't implemented.
 - A defeated beast keeps its powers (it respawns hidden). The scroll never returns to the world.
 - The first-person hands and claws aren't on a separate render pass, so they can clip into walls when you stand very close.

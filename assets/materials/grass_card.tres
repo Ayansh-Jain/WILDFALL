@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/materials/foliage_card.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/foliage_grass.png" id="2"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/card_tex = ExtResource("2")
+shader_parameter/tint = Color(0.55, 0.7, 0.5, 1)
+shader_parameter/wind_strength = 0.1
+shader_parameter/wind_speed = 1.6
+shader_parameter/fade_start = 24.0
+shader_parameter/fade_end = 34.0

@@ -10,6 +10,10 @@ const MAIN_SCENE := preload("res://scenes/main/main.tscn")
 
 ## name, camera position (y is metres above ground unless abs=true), yaw, pitch
 const VIEWS := [
+	["hands_castle", Vector3(186, 1.62, 100), 158.0, -1.0, "ground"],
+	["hands_forest", Vector3(168, 1.62, 100), 150.0, -2.0, "ground"],
+	["hands_trail", Vector3(-88, 1.62, -28), -110.0, -3.0, "ground"],
+	["hands_attack", Vector3(186, 1.62, 100), 158.0, -1.0, "ground_attack"],
 	["spawn_view", Vector3(-245, 1.62, -150), 0.0, 0.0, "spawn"],
 	["grove_tree", Vector3(0, 1.62, 62), 0.0, 8.0, ""],
 	["grove_close", Vector3(14, 1.62, 26), 25.0, 12.0, ""],
@@ -63,9 +67,29 @@ func _ready() -> void:
 	add_child(main)
 	await main.ready_for_play
 	var world: World = main.world
+	# Profiling switches: --no-shadows, --hide=<prefix>[,<prefix>] hides vegetation multimeshes by name.
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--no-shadows":
+			world.moon.shadow_enabled = false
+		elif arg.begins_with("--shadow-dist="):
+			world.moon.directional_shadow_max_distance = float(arg.substr(14))
+		elif arg.begins_with("--lod="):
+			var lod := float(arg.substr(6))
+			for n in world.get_node("Props/Vegetation").get_children():
+				var nm := String(n.name)
+				if nm.ends_with("_far"):
+					n.visibility_range_begin = lod - 6.0
+				elif n is GeometryInstance3D and (nm.begins_with("pine") or nm.begins_with("fir") or nm.begins_with("oak") or nm.begins_with("birch")):
+					n.visibility_range_end = lod
+		elif arg.begins_with("--hide="):
+			for prefix in arg.substr(7).split(","):
+				for n in world.get_node("Props/Vegetation").get_children():
+					if String(n.name).begins_with(prefix):
+						n.visible = false
 	var player: PlayerController = main.player
 	player.controls_enabled = false
-	main.hud.toggle_debug()
+	if not OS.get_cmdline_user_args().has("--clean"):
+		main.hud.toggle_debug()
 
 	print("\n%-20s %8s %8s %8s %6s" % ["view", "avg ms", "p95 ms", "fps", "draws"])
 	var all_ms: Array[float] = []
@@ -89,9 +113,18 @@ func _ready() -> void:
 			pos.y += world.site_height(mode.substr(5))
 		elif mode != "abs":
 			pos.y += world.terrain_height(pos.x, pos.z)
-		player.set_noclip(true)
-		player.global_position = pos - Vector3.UP * player.stand_eye
-		player.head.position.y = player.stand_eye
+		if mode == "ground_attack":
+			pos.y += world.terrain_height(pos.x, pos.z)
+		if mode == "ground" or mode == "ground_attack":
+			player.set_noclip(false)
+			player.teleport(pos - Vector3.UP * player.stand_eye, deg_to_rad(v[2]))
+			player.set_look(deg_to_rad(v[2]), deg_to_rad(v[3]))
+			for i in 30:
+				await get_tree().physics_frame
+		if mode != "ground" and mode != "ground_attack":
+			player.set_noclip(true)
+			player.global_position = pos - Vector3.UP * player.stand_eye
+			player.head.position.y = player.stand_eye
 		if mode == "spawn":
 			pass
 		elif mode == "prompt":
@@ -116,6 +149,16 @@ func _ready() -> void:
 			Combat.request_action(player.player_id, "heavy_attack")
 			for i in 30:
 				await get_tree().physics_frame
+		if mode == "ground_attack":
+			for i in 60:
+				await get_tree().process_frame
+			Combat.request_action(player.player_id, "attack")
+			for i in 12:
+				await get_tree().physics_frame
+			await RenderingServer.frame_post_draw
+			get_viewport().get_texture().get_image().save_png(out_dir.path_join(String(v[0]) + ".png"))
+			print("%-20s (pose capture)" % v[0])
+			continue
 		# Warm up (shader compiles, streaming), then measure.
 		for i in 20:
 			await get_tree().process_frame

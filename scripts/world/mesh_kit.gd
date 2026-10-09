@@ -145,6 +145,19 @@ static func icosphere_tris(subdivide: bool) -> Array:
 	return tris
 
 
+## Averages normals of coincident vertices (smooth shading for trunks, rocks).
+func smooth_normals() -> void:
+	var sums := {}
+	for i in verts.size():
+		var key := Vector3i((verts[i] * 1000.0).round())
+		sums[key] = sums.get(key, Vector3.ZERO) + normals[i]
+	for i in verts.size():
+		var key := Vector3i((verts[i] * 1000.0).round())
+		var n: Vector3 = sums[key]
+		if n.length_squared() > 1e-8:
+			normals[i] = n.normalized()
+
+
 func append(other: MeshKit) -> void:
 	verts.append_array(other.verts)
 	normals.append_array(other.normals)

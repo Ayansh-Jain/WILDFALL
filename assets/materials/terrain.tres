@@ -1,6 +1,26 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" load_steps=12 format=3]
 
 [ext_resource type="Shader" path="res://assets/materials/terrain.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/leafy_grass_diff.jpg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/textures/leafy_grass_nor.jpg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/textures/forest_leaves_02_diff.jpg" id="4"]
+[ext_resource type="Texture2D" path="res://assets/textures/rocky_trail_diff.jpg" id="5"]
+[ext_resource type="Texture2D" path="res://assets/textures/rocky_trail_nor.jpg" id="6"]
+[ext_resource type="Texture2D" path="res://assets/textures/brown_mud_02_diff.jpg" id="7"]
+[ext_resource type="Texture2D" path="res://assets/textures/rock_face_diff.jpg" id="8"]
+[ext_resource type="Texture2D" path="res://assets/textures/rock_face_nor.jpg" id="9"]
+[ext_resource type="Texture2D" path="res://assets/textures/snow_02_diff.jpg" id="10"]
+[ext_resource type="Texture2D" path="res://assets/textures/medieval_blocks_02_diff.jpg" id="11"]
 
 [resource]
 shader = ExtResource("1")
+shader_parameter/grass_tex = ExtResource("2")
+shader_parameter/grass_nrm = ExtResource("3")
+shader_parameter/forest_tex = ExtResource("4")
+shader_parameter/trail_tex = ExtResource("5")
+shader_parameter/trail_nrm = ExtResource("6")
+shader_parameter/mud_tex = ExtResource("7")
+shader_parameter/rock_tex = ExtResource("8")
+shader_parameter/rock_nrm = ExtResource("9")
+shader_parameter/snow_tex = ExtResource("10")
+shader_parameter/paving_tex = ExtResource("11")

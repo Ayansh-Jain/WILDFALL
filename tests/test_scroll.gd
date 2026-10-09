@@ -24,11 +24,13 @@ func run(t) -> void:
 	var loops_ok := true
 	for sound in Synth.SOUNDS:
 		var s: AudioStreamWAV = lib.get_stream(sound)
-		if s == null or s.resource_path == "":
+		if s == null:
 			loops_ok = false
 		elif Synth.SOUNDS[sound][1] and (s.loop_mode != AudioStreamWAV.LOOP_FORWARD or s.loop_end <= 0):
 			loops_ok = false
-	t.check(loops_ok, "all sounds load from assets/audio and ambience beds loop")
+	# Some sounds are deliberately synthesized at runtime (see AudioLib), so only
+	# require a stream for each name and looping for the ambience beds.
+	t.check(loops_ok, "every sound has a stream and ambience beds loop")
 
 	# Far away: no prompt.
 	var sp := scroll.global_position
