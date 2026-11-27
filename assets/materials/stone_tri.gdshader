@@ -14,6 +14,18 @@ uniform float brightness = 1.0;
 uniform float saturation : hint_range(0.0, 1.5) = 1.0;
 // Object-space mapping for moving things (e.g. view models); world space otherwise.
 uniform bool object_space = false;
+// Optional separate texture for upward faces (floors, stair treads, wall tops).
+uniform bool use_top_tex = false;
+uniform sampler2D top_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D top_nrm : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform float top_scale = 0.3;
+uniform float roughness_value : hint_range(0.0, 1.0) = 0.9;
+// Large-scale tonal variation that hides texture repetition on big surfaces.
+uniform float macro_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float macro_scale = 0.11;
+// Blends a second, larger and offset sampling of the wall texture to break up tiling.
+uniform float second_scale_mix : hint_range(0.0, 1.0) = 0.0;
+uniform float macro_hue : hint_range(0.0, 1.0) = 0.0;
 
 varying vec3 v_pos;
 varying vec3 v_n;
@@ -24,6 +36,21 @@ float hash(vec3 p) {
 	p = fract(p * 0.3183099 + 0.1);
 	p *= 17.0;
 	return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float value_noise(vec3 p) {
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	float n000 = hash(i);
+	float n100 = hash(i + vec3(1.0, 0.0, 0.0));
+	float n010 = hash(i + vec3(0.0, 1.0, 0.0));
+	float n110 = hash(i + vec3(1.0, 1.0, 0.0));
+	float n001 = hash(i + vec3(0.0, 0.0, 1.0));
+	float n101 = hash(i + vec3(1.0, 0.0, 1.0));
+	float n011 = hash(i + vec3(0.0, 1.0, 1.0));
+	float n111 = hash(i + vec3(1.0, 1.0, 1.0));
+	return mix(mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y), mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y), f.z);
 }
 
 void vertex() {
@@ -44,9 +71,23 @@ void fragment() {
 	vec2 px = v_pos.zy * scale;
 	vec2 py = v_pos.xz * scale;
 	vec2 pz = v_pos.xy * scale;
-	vec3 c = texture(stone_tex, px).rgb * w.x + texture(stone_tex, py).rgb * w.y + texture(stone_tex, pz).rgb * w.z;
+	vec3 cy;
+	vec3 ny;
+	if (use_top_tex && v_n.y > 0.0) {
+		vec2 pt = v_pos.xz * top_scale;
+		cy = texture(top_tex, pt).rgb;
+		ny = texture(top_nrm, pt).rgb * 2.0 - 1.0;
+	} else {
+		cy = texture(stone_tex, py).rgb;
+		ny = texture(stone_nrm, py).rgb * 2.0 - 1.0;
+	}
+	vec3 c = texture(stone_tex, px).rgb * w.x + cy * w.y + texture(stone_tex, pz).rgb * w.z;
+	if (second_scale_mix > 0.0) {
+		float s2 = 0.41;
+		vec3 c2 = texture(stone_tex, px * s2 + vec2(0.37, 0.19)).rgb * w.x + cy * w.y + texture(stone_tex, pz * s2 + vec2(0.71, 0.53)).rgb * w.z;
+		c = mix(c, c2, second_scale_mix);
+	}
 	vec3 nx = texture(stone_nrm, px).rgb * 2.0 - 1.0;
-	vec3 ny = texture(stone_nrm, py).rgb * 2.0 - 1.0;
 	vec3 nz = texture(stone_nrm, pz).rgb * 2.0 - 1.0;
 	vec3 pert = vec3(0.0, nx.y, nx.x) * w.x + vec3(ny.x, 0.0, ny.y) * w.y + vec3(nz.x, nz.y, 0.0) * w.z;
 	vec3 nn = normalize(v_n + pert * normal_strength);
@@ -60,7 +101,15 @@ void fragment() {
 	float moss = smoothstep(0.55, 0.9, v_wn.y + (hash(floor(v_pos * 2.0)) - 0.5) * 0.25) * moss_amount;
 	c = mix(c, moss_color * (0.7 + 0.6 * c.g), moss);
 	c = mix(vec3(dot(c, vec3(0.3, 0.59, 0.11))), c, saturation);
+	if (macro_strength > 0.0) {
+		float m = value_noise(v_pos * macro_scale) * 0.65 + value_noise(v_pos * macro_scale * 3.1) * 0.35;
+		c *= 1.0 + (m - 0.5) * 2.0 * macro_strength;
+		if (macro_hue > 0.0) {
+			float hv = value_noise(v_pos * macro_scale * 0.7 + vec3(17.3, 5.1, 9.7));
+			c *= mix(vec3(1.0), mix(vec3(1.06, 1.0, 0.9), vec3(0.93, 0.98, 1.06), hv), macro_hue);
+		}
+	}
 	ALBEDO = c * brightness;
-	ROUGHNESS = 0.9;
+	ROUGHNESS = roughness_value;
 	SPECULAR = 0.25;
 }

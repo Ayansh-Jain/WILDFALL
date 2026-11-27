@@ -1,0 +1,74 @@
+{
+	"_doc": "R03 gameplay layer over data/world_layout.json. Points are [x, z] (+x east, -z north). Ids are stable and saved: never rename one. Antigravity: move a pos when you move the place; add entries for new places. Codex: everything here is activated by distance from ExplorationDirector.focus().",
+
+	"locations": [
+		{"id": "eldoria", "name": "Eldoria", "category": "settlement", "pos": [205, 205], "radius": 62, "description": "The royal capital under the walls of Lakeside Castle.", "safe": true, "travel": [196, 192], "audio": {"wind": -5.0, "birds": -4.0}},
+		{"id": "lakeside_castle", "name": "Lakeside Castle", "category": "royal", "pos": [168, 135], "radius": 26, "description": "The King's seat above Moonmere.", "safe": true, "travel": [138, 135]},
+		{"id": "castle_square", "name": "Castle Square", "category": "royal", "pos": [231, 94], "radius": 24, "description": "Markets and proclamations beneath the royal banners.", "safe": true, "travel": [231, 100]},
+		{"id": "golden_valley", "name": "Golden Valley", "category": "viewpoint", "pos": [104, 206], "radius": 30, "description": "Open meadows between the river and the capital."},
+		{"id": "southbank", "name": "Southbank", "category": "settlement", "pos": [80, 228], "radius": 26, "description": "Farm cottages along the lower Silverrun.", "safe": true, "travel": [80, 232]},
+		{"id": "stone_bridge", "name": "Stone Bridge", "category": "bridge", "pos": [58, 172], "radius": 18, "description": "The old crossing of the Silverrun.", "travel": [44, 164]},
+		{"id": "ashford", "name": "Ashford", "category": "settlement", "pos": [246, 42], "radius": 34, "description": "A farming village on the eastern road.", "safe": true, "travel": [240, 44]},
+		{"id": "northmere", "name": "Northmere", "category": "settlement", "pos": [144, -78], "radius": 30, "description": "A riverside hamlet north of Moonmere.", "safe": true, "travel": [144, -78]},
+		{"id": "north_bridge", "name": "North Bridge", "category": "bridge", "pos": [100, -150], "radius": 22, "description": "A timber span on the King's Road.", "travel": [76, -150]},
+		{"id": "old_ford", "name": "Old Ford", "category": "crossing", "pos": [86, -214], "radius": 14, "description": "Shallow water where drovers cross."},
+		{"id": "reed_ford", "name": "Reed Ford", "category": "crossing", "pos": [23, 228], "radius": 13, "description": "A reedy crossing in the south."},
+		{"id": "elder_tree", "name": "The Elder Tree", "category": "memorial", "pos": [0, 32], "radius": 26, "description": "The memorial ground for the kingdom's fallen.", "safe": true, "travel": [-4, 38]},
+		{"id": "hunters_camp", "name": "Hunter's Camp", "category": "camp", "pos": [58, -42], "radius": 14, "description": "A trapper's fire pit among the trees.", "travel": [58, -42]},
+		{"id": "whispering_woods", "name": "Whispering Woods", "category": "forest", "pos": [-190, -4], "radius": 34, "description": "Old growth where sound carries strangely."},
+		{"id": "old_citadel", "name": "Old Citadel", "category": "ruins", "pos": [-132, -58], "radius": 28, "description": "The first kings' fortress, now a training ground."},
+		{"id": "sunken_chapel", "name": "Sunken Chapel", "category": "ruins", "pos": [-95, 138], "radius": 24, "description": "A roofless chapel settling into the earth."},
+		{"id": "watchers_hill", "name": "Watcher's Hill", "category": "viewpoint", "pos": [-200, 205], "radius": 24, "description": "The watchtower looks across the whole western march.", "travel": [-200, 212]},
+		{"id": "sentinel_crag", "name": "Sentinel Crag", "category": "viewpoint", "pos": [212, -94], "radius": 24, "description": "A high lookout over lake and mountains."},
+		{"id": "greyback_ridge", "name": "Greyback Ridge", "category": "pass", "pos": [-214, -176], "radius": 32, "description": "The foot of the Frostcrest range."},
+		{"id": "hollow_deep", "name": "Hollow Deep", "category": "cave", "pos": [-32, -172], "radius": 18, "description": "Cave mouths breathing cold air."},
+		{"id": "westmarch", "name": "Westmarch", "category": "settlement", "pos": [-236, -32], "radius": 24, "description": "A lonely hamlet near the western wall.", "safe": true, "travel": [-228, -26]},
+		{"id": "southwatch", "name": "Southwatch", "category": "settlement", "pos": [-136, 214], "radius": 24, "description": "Cottages below the watchtower road.", "safe": true, "travel": [-128, 218]},
+		{"id": "war_plains", "name": "War Plains", "category": "battlefield", "pos": [-228, 72], "radius": 42, "description": "The mustering field before the Great Gate.", "travel": [-205, 70]},
+		{"id": "great_gate", "name": "The Great Gate", "category": "defence", "pos": [-282, 70], "radius": 24, "description": "Sealed oak and iron in the Great Wall. Beyond lies Vareth.", "travel": [-266, 72]}
+	],
+
+	"interactions": [
+		{"id": "sign_castle_road", "kind": "sign", "pos": [136, 140], "prompt": "Read the road sign", "lines": ["West: Stone Bridge and the old forest.", "North-east: Castle Square and Ashford."]},
+		{"id": "sign_stone_bridge", "kind": "sign", "pos": [40, 159], "prompt": "Read the road sign", "lines": ["North: the Elder Tree.", "East: across the bridge to Eldoria."]},
+		{"id": "sign_north_road", "kind": "sign", "pos": [76, -145], "prompt": "Read the road sign", "lines": ["West: Westmarch and the Great Gate road.", "East: over the bridge to Northmere."]},
+		{"id": "sign_gate_road", "kind": "sign", "pos": [-190, 20], "prompt": "Read the road sign", "lines": ["The King's Way: the Great Gate.", "None pass without the royal seal."]},
+		{"id": "sign_ashford", "kind": "sign", "pos": [218, 46], "prompt": "Read the road sign", "lines": ["Ashford. Mind the geese."]},
+		{"id": "memorial_cairn", "kind": "monument", "pos": [8, 40], "prompt": "Pay your respects", "title": "A soldiers' cairn", "lines": ["Each stone was laid by someone who came home."]},
+		{"id": "ancient_stone", "kind": "monument", "pos": [-124, -50], "prompt": "Study the carved stone", "title": "A boundary stone", "lines": ["The crest has been chiselled away. Only the words 'HELD FOR ALL' remain."]},
+		{"id": "chapel_marker", "kind": "monument", "pos": [-92, 148], "prompt": "Examine the broken marker", "title": "A chapel marker", "lines": ["Names of villagers, the last ones unweathered."]},
+		{"id": "abandoned_camp", "kind": "camp", "pos": [-182, -14], "prompt": "Search the abandoned camp", "title": "A cold camp", "lines": ["Ash still dry. Black cloth snagged on a branch."]},
+		{"id": "view_crag", "kind": "view", "pos": [210, -96], "prompt": "Take in the view", "title": "From Sentinel Crag", "lines": ["Moonmere below, the capital to the south, snow-dark peaks behind."], "reveals": ["northmere", "ashford", "north_bridge"]},
+		{"id": "view_watch", "kind": "view", "pos": [-196, 208], "prompt": "Take in the view", "title": "From Watcher's Hill", "lines": ["The Great Wall runs north until the haze takes it."], "reveals": ["great_gate", "war_plains", "southwatch"]},
+		{"id": "rest_hunters", "kind": "rest", "pos": [55, -39], "prompt": "Rest by the fire", "title": "Hunter's Camp"},
+		{"id": "rest_ashford", "kind": "rest", "pos": [236, 48], "prompt": "Rest at the bench", "title": "Ashford"},
+		{"id": "rest_northmere", "kind": "rest", "pos": [139, -73], "prompt": "Rest at the bench", "title": "Northmere"},
+		{"id": "rest_southbank", "kind": "rest", "pos": [75, 231], "prompt": "Rest at the bench", "title": "Southbank"}
+	],
+
+	"settlements": [
+		{"location": "ashford", "villagers": [
+			{"id": "ashford_miller", "name": "Old Bess", "style": "elder", "pos": [250, 47], "lines": ["The geese have more sense than the tax man.", "Safe road, Commander."]},
+			{"id": "ashford_boy", "name": "Pip", "style": "child", "pos": [243, 39], "to": [249, 37], "lines": ["Is that your real horse?"]}
+		]},
+		{"location": "northmere", "villagers": [
+			{"id": "northmere_fisher", "name": "Aud", "style": "elder", "pos": [148, -73], "lines": ["River's high. Use the bridge, not the ford."]}
+		]},
+		{"location": "southbank", "villagers": [
+			{"id": "southbank_farmer", "name": "Hobb's widow", "style": "elder", "pos": [86, 222], "lines": ["Good soil, this valley. Worth keeping."]},
+			{"id": "southbank_girl", "name": "Wren", "style": "child", "pos": [78, 219], "to": [72, 223], "lines": ["I saw riders in black near the old chapel."]}
+		]}
+	],
+
+	"encounters": [
+		{"id": "patrol_forest_road", "name": "Enemy patrol", "center": [-132, 22], "enemies": [
+			{"offset": [-1.6, 0.0], "health": 70, "pattern": "standard"},
+			{"offset": [1.8, 1.4], "health": 60, "pattern": "defensive"}
+		]},
+		{"id": "chapel_deserters", "name": "Deserters at the chapel", "center": [-80, 120], "enemies": [
+			{"offset": [-2.0, 0.0], "health": 70, "pattern": "standard"},
+			{"offset": [2.2, 0.4], "health": 60, "pattern": "defensive"},
+			{"offset": [0.0, 2.6], "health": 90, "pattern": "heavy"}
+		]}
+	]
+}

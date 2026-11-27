@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.7088 - Compatibility - Using Device: Intel - Intel(R) Iris(R) Xe Graphics
+
+SCRIPT ERROR: Parse Error: Could not find type "PlayerCamera" in the current scope.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:104)
+SCRIPT ERROR: Parse Error: Identifier "PlayerCamera" not declared in the current scope.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:193)
+SCRIPT ERROR: Parse Error: Identifier "PlayerCamera" not declared in the current scope.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:986)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "offset" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:1002)
+SCRIPT ERROR: Parse Error: Identifier "PlayerCamera" not declared in the current scope.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:1008)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "base_pitch" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:1010)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "full" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:1011)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "dir" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:1030)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "cam_pos" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/player/player_controller.gd:1037)
+SCRIPT ERROR: Parse Error: Identifier "SafeSpot" not declared in the current scope.
+   at: GDScript::reload (res://scripts/player/rider.gd:88)
+SCRIPT ERROR: Parse Error: Identifier "SafeSpot" not declared in the current scope.
+   at: GDScript::reload (res://scripts/player/rider.gd:156)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "g" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/player/rider.gd:156)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://scripts/combat/combat_authority.gd:0)
+ERROR: Failed to load script "res://scripts/combat/combat_authority.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+SCRIPT ERROR: Parse Error: Could not find type "HorseRecall" in the current scope.
+   at: GDScript::reload (res://scripts/main/main.gd:30)
+SCRIPT ERROR: Parse Error: Identifier "HorseRecall" not declared in the current scope.
+   at: GDScript::reload (res://scripts/main/main.gd:223)
+ERROR: Failed to load script "res://scripts/main/main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+[GameState] world_seed=1337 scroll_seed=20240 dev_mode=true
+SCRIPT ERROR: Invalid assignment of property or key 'auto_capture_mouse' with value of type 'bool' on a base object of type 'Node'.
+   at: _ready (res://tests/day_night_tour.gd:19)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://tests/day_night_tour.gd:19)

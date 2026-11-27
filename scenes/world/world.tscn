@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/world/terrain.gd" id="2_terrain"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://scripts/world/sites.gd" id="5_sites"]
 [ext_resource type="Script" path="res://scripts/world/cave.gd" id="6_cave"]
 [ext_resource type="Script" path="res://scripts/managers/ambience.gd" id="7_amb"]
+[ext_resource type="Script" path="res://scripts/world/day_night_cycle.gd" id="8_day_night"]
+[ext_resource type="Script" path="res://scripts/world/bird_ambience.gd" id="9_birds"]
 
 [sub_resource type="Sky" id="Sky_1"]
 sky_material = ExtResource("3_sky")
@@ -30,13 +32,13 @@ glow_hdr_threshold = 1.25
 fog_enabled = true
 fog_light_color = Color(0.17, 0.22, 0.32, 1)
 fog_light_energy = 1.0
-fog_density = 0.005
-fog_sky_affect = 0.35
-fog_aerial_perspective = 0.15
+	fog_density = 0.00065
+fog_sky_affect = 0.1
+fog_aerial_perspective = 0.05
 fog_height = 3.5
-fog_height_density = 0.09
+fog_height_density = 0.0015
 adjustment_enabled = true
-adjustment_saturation = 0.88
+adjustment_saturation = 0.96
 adjustment_contrast = 1.06
 
 [node name="World" type="Node3D"]
@@ -44,6 +46,14 @@ script = ExtResource("1_world")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Env_1")
+
+[node name="DayNightCycle" type="Node" parent="."]
+script = ExtResource("8_day_night")
+cycle_duration_seconds = 1200.0
+start_hour = 7.0
+
+[node name="BirdAmbience" type="Node3D" parent="."]
+script = ExtResource("9_birds")
 
 [node name="Moon" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 80, 0)
@@ -75,3 +85,4 @@ script = ExtResource("6_cave")
 
 [node name="Ambience" type="Node" parent="."]
 script = ExtResource("7_amb")
+622

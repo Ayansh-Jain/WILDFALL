@@ -1,0 +1,68 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[GameState] world_seed=1337 scroll_seed=20240 dev_mode=true
+PASS the Commander enters the arena with the dual-sword system
+PASS showcase wf_markers found  (12)
+PASS safe player spawn stands on ground
+PASS station 'spawn' is standable  ((96.0, 4.3, -14.0))
+PASS station 'training' is standable  ((102.9, 4.4, -26.6))
+PASS station 'duel' is standable  ((110.9, 4.4, -36.6))
+PASS station 'group' is standable  ((116.9, 4.3, -40.6))
+PASS station 'elite' is standable  ((126.9, 4.3, -56.6))
+PASS station 'army' is standable  ((136.3, 4.2, -35.3))
+PASS guard is a rebindable action on the right mouse button
+PASS sheathed state reads EXPLORE  (EXPLORE)
+PASS attack from sheathed is accepted
+PASS the draw does not cancel the cut
+PASS state reads ATTACKING  (ATTACKING)
+PASS the cut lands once  (50)
+PASS attack running
+PASS no attack keeps firing after presses stop
+PASS guard raises  (PARRY)
+PASS guard pose shown
+PASS guard lowers cleanly
+PASS no attack while restricted
+PASS a refused press does not attack later
+PASS soft facing turns toward the intended opponent  (22.0 deg)
+PASS never turns toward an opponent behind
+PASS training starts with an instructor
+PASS pressing guard teaches the stance but does not pass the parry  (parry)
+PASS a parry press with no incoming blow does not count
+PASS failure gives feedback, restores health and stays on the step  (1)
+PASS lesson 'twin_blades' is completable by real outcomes  (step guard goals { "combo": false, "parry": false, "dodge": false } last: Lesson complete)
+PASS lesson 'warrior_guard' is completable by real outcomes  (step perfect goals { "combo": false, "parry": false, "dodge": false } last: Lesson complete)
+PASS lesson 'balance' is completable by real outcomes  (step dodge goals { "combo": false, "parry": false, "dodge": false } last: Lesson complete)
+PASS lesson 'falling_leaf' is completable by real outcomes  (step trial goals { "combo": false, "parry": false, "dodge": false } last: Lesson complete)
+PASS lesson 'trial' is completable by real outcomes  (step  goals { "combo": true, "parry": true, "dodge": true } last: Lesson complete)
+PASS training ends after the trial
+PASS Commander leaves training whole
+PASS no training enemy or token remains
+PASS a lesson can be skipped
+PASS leaving removes every training rule
+PASS group station has five opponents
+PASS exactly one regular enemy commits at a time  (max 1)
+PASS player death in a station
+PASS no actions while dead
+PASS retry restores the station
+PASS elite duel is protected from allies
+PASS victory is recognised
+PASS clearing releases everything
+PASS T summons four living roster soldiers  (4)
+PASS formation does not overlap the Commander or itself
+PASS formation stands behind him
+PASS escort holds; it does not follow  (0.00 m)
+PASS T dismisses
+PASS the fallen are not resurrected by dismissing and summoning
+PASS population is not increased  (3 living, 3 called)
+PASS repeated T never duplicates soldiers  (2)
+PASS a distant soldier can be put to sleep
+PASS and wakes when the Commander is near
+PASS army display runs advance, engage, retreat, regroup  (["advance", "retreat", "regroup"])
+PASS army display never takes the Commander attack token
+PASS the arena never writes the campaign save
+PASS open ground gives two by two
+PASS a narrow way gives a file inside the walls  (4)
+PASS no room behind: the summon is refused
+PASS leaving the arena leaves no combat state
+PASS respawn mode restored
+[r02-player] 64 passed, 0 failed

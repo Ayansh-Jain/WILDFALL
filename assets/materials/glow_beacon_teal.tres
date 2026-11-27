@@ -1,8 +1,11 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cuibjb5wigolx"]
 
-[ext_resource type="Shader" path="res://assets/materials/glow_nofog.gdshader" id="1"]
+[ext_resource type="Shader" uid="uid://wn8gk20sisjl" path="res://assets/materials/glow_nofog.gdshader" id="1"]
 
 [resource]
+render_priority = 0
 shader = ExtResource("1")
 shader_parameter/glow_color = Color(0.25, 1, 0.82, 1)
 shader_parameter/energy = 1.4
+shader_parameter/pulse_speed = 0.8
+shader_parameter/pulse_amount = 0.2

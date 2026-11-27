@@ -1,0 +1,39 @@
+{
+ "clips": {
+  "dismount": {
+   "frames": 60,
+   "loop": false
+  },
+  "mount": {
+   "frames": 78,
+   "loop": false
+  },
+  "ride_canter": {
+   "frames": 14,
+   "loop": true
+  },
+  "ride_gallop": {
+   "frames": 14,
+   "loop": true
+  },
+  "ride_idle": {
+   "frames": 80,
+   "loop": true
+  },
+  "ride_trot": {
+   "frames": 22,
+   "loop": true
+  },
+  "ride_walk": {
+   "frames": 30,
+   "loop": true
+  }
+ },
+ "fps": 30,
+ "mount_spot_game": [
+  -0.6800000071525574,
+  0.0,
+  -0.3199999928474426
+ ],
+ "pelvis_above_seat": 0.1
+}

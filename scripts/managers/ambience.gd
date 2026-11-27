@@ -1,22 +1,35 @@
 class_name Ambience
 extends Node
 ## Environmental audio and mood: wind/leaves/crickets beds, positional water,
-## random distant wildlife, and the cave transition (darker ambient light,
-## reverb, drips). Also muffles audio while the camera is underwater.
+## random distant wildlife, and the cave and building-interior transitions
+## (darker ambient light, no ground mist, reverb, drips). Also muffles audio
+## while the camera is underwater.
 
 @export var wildlife_interval := Vector2(7.0, 18.0)
 @export var cave_ambient_energy := 0.45
 @export var cave_fog_energy := 0.25
+## Interior moods by name (Sites.interior_zones). Values multiply the outdoor
+## ambient energy, sky contribution and fog density; height fog (the ground
+## mist) is switched off indoors.
+@export var interior_moods := {
+	"keep": {"ambient": 1.15, "sky": 0.35, "fog_density": 0.0, "fog_energy": 0.6, "color": Color(0.42, 0.37, 0.33)},
+	"crypt": {"ambient": 0.75, "sky": 0.0, "fog_density": 1.6, "fog_energy": 0.18, "color": Color(0.27, 0.32, 0.3)},
+}
 
 var world: World
 var player: PlayerController
 var cave: Cave
 var in_cave := false
+var interior := ""
+## dB offsets for the region the Commander is in: {wind, birds, leaves}.
+var region_offsets := {}
 
 var _lib: AudioLib
+var _cycle: DayNightCycle
 var _wind: AudioStreamPlayer
 var _leaves: AudioStreamPlayer
 var _crickets: AudioStreamPlayer
+var _birds: AudioStreamPlayer
 var _next_call := 5.0
 var _next_drip := 3.0
 var _reverb_idx := -1
@@ -24,6 +37,16 @@ var _lowpass_idx := -1
 var _base_ambient := 0.9
 var _base_fog_energy := 1.0
 var _base_sky := 0.35
+var _base_ambient_color := Color(0.34, 0.43, 0.62)
+var _base_fog_density := 0.005
+var _base_height_density := 0.09
+var _ambient_scale := 1.0
+var _fog_energy_scale := 1.0
+var _sky_scale := 1.0
+var _fog_density_scale := 1.0
+var _height_scale := 1.0
+var _ambient_tint := Color.WHITE
+var _zones: Array = []
 var _mood_tween: Tween
 var _rng := RandomNumberGenerator.new()
 
@@ -31,15 +54,23 @@ var _rng := RandomNumberGenerator.new()
 func setup(w: World, p: PlayerController) -> void:
 	world = w
 	player = p
+	_cycle = world.get_node_or_null("DayNightCycle") as DayNightCycle
 	_lib = AudioLib.get_instance()
 	_rng.randomize()
 	var env := world.environment
 	_base_ambient = env.ambient_light_energy
 	_base_fog_energy = env.fog_light_energy
 	_base_sky = env.ambient_light_sky_contribution
+	_base_fog_density = env.fog_density
+	_base_ambient_color = env.ambient_light_color
+	_base_height_density = env.fog_height_density
+	var sites := world.get_node_or_null("Sites/Structures")
+	if sites and "interior_zones" in sites:
+		_zones = sites.interior_zones
 	_wind = _bed("wind_loop", -15.0)
 	_leaves = _bed("leaves_loop", -22.0)
 	_crickets = _bed("crickets_loop", -27.0)
+	_birds = _bed("birds_loop", -40.0)
 	_water_emitters()
 	_setup_bus_effects()
 	cave = world.get_node_or_null("Sites/Cave")
@@ -122,16 +153,31 @@ func _process(delta: float) -> void:
 	var pos := player.global_position
 	# Leaves rustle louder under the canopy.
 	var f := world.terrain_data.sample(world.terrain_data.forest, pos.x, pos.z)
-	var target_leaves := -34.0 if in_cave else lerpf(-28.0, -15.0, f)
+	var target_leaves := -34.0 if in_cave else lerpf(-28.0, -15.0, f) + float(region_offsets.get("leaves", 0.0))
 	_leaves.volume_db = lerpf(_leaves.volume_db, target_leaves, delta * 1.5)
-	_wind.volume_db = lerpf(_wind.volume_db, -36.0 if in_cave else -15.0 + clampf((pos.y - 10.0) / 6.0, 0.0, 6.0), delta * 1.5)
-	_crickets.volume_db = lerpf(_crickets.volume_db, -40.0 if in_cave else -27.0, delta * 1.5)
+	_wind.volume_db = lerpf(_wind.volume_db, -36.0 if in_cave else -15.0 + clampf((pos.y - 10.0) / 6.0, 0.0, 6.0) + float(region_offsets.get("wind", 0.0)), delta * 1.5)
+	var night := _cycle.night_strength if _cycle else 0.5
+	var day := _cycle.daylight_strength if _cycle else 0.5
+	_crickets.volume_db = lerpf(_crickets.volume_db, -40.0 if in_cave else lerpf(-40.0, -27.0, night), delta * 1.2)
+	_birds.volume_db = lerpf(_birds.volume_db, -40.0 if in_cave else lerpf(-42.0, -24.0, day) + float(region_offsets.get("birds", 0.0)), delta * 1.2)
 	AudioServer.set_bus_effect_enabled(0, _lowpass_idx, player.is_camera_underwater())
+	var zone := ""
+	var eye := player.global_position + Vector3.UP * 1.5
+	for z: Dictionary in _zones:
+		if (z["aabb"] as AABB).has_point(z.get("inverse", Transform3D.IDENTITY) * eye):
+			zone = z["mood"]
+			break
+	if zone != interior:
+		interior = zone
+		if not in_cave:
+			_apply_mood()
 
 	_next_call -= delta
-	if _next_call <= 0.0 and not in_cave:
+	if _next_call <= 0.0 and not in_cave and night > 0.18:
 		_next_call = _rng.randf_range(wildlife_interval.x, wildlife_interval.y)
 		_wildlife_call(pos)
+	elif _next_call <= 0.0 and night <= 0.18:
+		_next_call = _rng.randf_range(wildlife_interval.x, wildlife_interval.y)
 	if in_cave:
 		_next_drip -= delta
 		if _next_drip <= 0.0:
@@ -170,21 +216,49 @@ func _random_cave_point() -> Vector3:
 
 func _on_cave_entered() -> void:
 	in_cave = true
-	AudioServer.set_bus_effect_enabled(0, _reverb_idx, true)
-	_tween_mood(cave_ambient_energy, cave_fog_energy, 0.0)
+	_apply_mood()
 
 
 func _on_cave_exited() -> void:
 	in_cave = false
-	AudioServer.set_bus_effect_enabled(0, _reverb_idx, false)
-	_tween_mood(_base_ambient, _base_fog_energy, _base_sky)
+	_apply_mood()
 
 
-func _tween_mood(ambient: float, fog_energy: float, sky: float) -> void:
-	var env := world.environment
+func _apply_mood() -> void:
+	# The crypt lies below the lake's water plane, whose underside would hide its ceilings.
+	var water := world.get_node_or_null("Water") as Node3D
+	if water:
+		water.visible = interior != "crypt" or in_cave
+	if in_cave:
+		AudioServer.set_bus_effect_enabled(0, _reverb_idx, true)
+		_tween_mood(cave_ambient_energy, cave_fog_energy, 0.0, _base_fog_density, _base_height_density, _base_ambient_color)
+	elif interior != "" and interior_moods.has(interior):
+		var m: Dictionary = interior_moods[interior]
+		AudioServer.set_bus_effect_enabled(0, _reverb_idx, true)
+		_tween_mood(_base_ambient * float(m["ambient"]), _base_fog_energy * float(m["fog_energy"]),
+			_base_sky * float(m["sky"]), _base_fog_density * float(m["fog_density"]), 0.0, m.get("color", _base_ambient_color), 0.8)
+	else:
+		AudioServer.set_bus_effect_enabled(0, _reverb_idx, false)
+		_tween_mood(_base_ambient, _base_fog_energy, _base_sky, _base_fog_density, _base_height_density, _base_ambient_color)
+
+
+func _tween_mood(ambient: float, fog_energy: float, sky: float, fog_density: float,
+		height_density: float, ambient_color: Color, seconds := 1.2) -> void:
 	if _mood_tween:
 		_mood_tween.kill()
 	_mood_tween = create_tween().set_parallel()
-	_mood_tween.tween_property(env, "ambient_light_energy", ambient, 1.2)
-	_mood_tween.tween_property(env, "fog_light_energy", fog_energy, 1.2)
-	_mood_tween.tween_property(env, "ambient_light_sky_contribution", sky, 1.2)
+	_mood_tween.tween_property(self, "_ambient_scale", ambient / maxf(_base_ambient, 0.01), seconds)
+	_mood_tween.tween_property(self, "_fog_energy_scale", fog_energy / maxf(_base_fog_energy, 0.01), seconds)
+	_mood_tween.tween_property(self, "_sky_scale", sky / maxf(_base_sky, 0.01), seconds)
+	_mood_tween.tween_property(self, "_fog_density_scale", fog_density / maxf(_base_fog_density, 0.0001), seconds)
+	_mood_tween.tween_property(self, "_height_scale", height_density / maxf(_base_height_density, 0.0001), seconds)
+	_mood_tween.tween_property(self, "_ambient_tint", _color_ratio(ambient_color, _base_ambient_color), seconds)
+
+
+func environment_overlay() -> Dictionary:
+	return {"ambient": _ambient_scale, "fog_energy": _fog_energy_scale, "sky": _sky_scale,
+		"fog_density": _fog_density_scale, "height": _height_scale, "tint": _ambient_tint}
+
+
+func _color_ratio(value: Color, base: Color) -> Color:
+	return Color(value.r / maxf(base.r, 0.01), value.g / maxf(base.g, 0.01), value.b / maxf(base.b, 0.01), 1.0)

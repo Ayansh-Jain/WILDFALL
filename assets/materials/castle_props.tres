@@ -1,0 +1,32 @@
+[gd_resource type="ShaderMaterial" load_steps=12 format=3]
+
+[ext_resource type="Shader" path="res://assets/materials/castle_props.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/wood_table_worn_diff.jpg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/textures/wood_table_worn_nor.jpg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/textures/dark_wooden_planks_diff.jpg" id="4"]
+[ext_resource type="Texture2D" path="res://assets/textures/dark_wooden_planks_nor.jpg" id="5"]
+[ext_resource type="Texture2D" path="res://assets/textures/rough_linen_diff.jpg" id="6"]
+[ext_resource type="Texture2D" path="res://assets/textures/rough_linen_nor.jpg" id="7"]
+[ext_resource type="Texture2D" path="res://assets/textures/medieval_blocks_05_diff.jpg" id="8"]
+[ext_resource type="Texture2D" path="res://assets/textures/medieval_blocks_05_nor.jpg" id="9"]
+[ext_resource type="Texture2D" path="res://assets/textures/castle_wall_slates_diff.jpg" id="10"]
+[ext_resource type="Texture2D" path="res://assets/textures/castle_wall_slates_nor.jpg" id="11"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/wood_tex = ExtResource("2")
+shader_parameter/wood_nrm = ExtResource("3")
+shader_parameter/plank_tex = ExtResource("4")
+shader_parameter/plank_nrm = ExtResource("5")
+shader_parameter/cloth_tex = ExtResource("6")
+shader_parameter/cloth_nrm = ExtResource("7")
+shader_parameter/stone_tex = ExtResource("8")
+shader_parameter/stone_nrm = ExtResource("9")
+shader_parameter/rubble_tex = ExtResource("10")
+shader_parameter/rubble_nrm = ExtResource("11")
+shader_parameter/wood_scale = 0.9
+shader_parameter/plank_scale = 0.45
+shader_parameter/cloth_scale = 2.2
+shader_parameter/stone_scale = 0.36
+shader_parameter/detail_strength = 0.85
+shader_parameter/normal_strength = 0.8

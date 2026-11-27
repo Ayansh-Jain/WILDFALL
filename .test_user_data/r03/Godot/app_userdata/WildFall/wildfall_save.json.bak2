@@ -1,0 +1,97 @@
+{
+	"reason": "campaign",
+	"saved_at": "2026-11-27T02:04:03",
+	"sections": {
+		"campaign": {
+			"campaign_complete": false,
+			"castle_opening_complete": true,
+			"checkpoint": {},
+			"coin_rewards": {},
+			"coins": 0,
+			"completed": [],
+			"deployment_positions": {},
+			"hours": 17.2353333333446,
+			"next_briefing_after": -1.0,
+			"next_soldier_id": 5,
+			"roster": [
+				{
+					"alive": true,
+					"health": 100,
+					"id": 1,
+					"name": "Aldric"
+				},
+				{
+					"alive": true,
+					"health": 100,
+					"id": 2,
+					"name": "Bram"
+				},
+				{
+					"alive": true,
+					"health": 100,
+					"id": 3,
+					"name": "Cedric"
+				},
+				{
+					"alive": true,
+					"health": 100,
+					"id": 4,
+					"name": "Dunstan"
+				}
+			],
+			"states": {
+				"1": "Briefing available",
+				"2": "Locked",
+				"3": "Locked",
+				"4": "Locked",
+				"5": "Locked"
+			},
+			"version": 1
+		},
+		"escort": {
+			"deployed": false,
+			"members": []
+		},
+		"exploration": {
+			"discovered": [
+				"lakeside_castle",
+				"golden_valley",
+				"southbank",
+				"stone_bridge",
+				"ashford",
+				"castle_square",
+				"northmere",
+				"north_bridge",
+				"war_plains",
+				"great_gate"
+			],
+			"used": [],
+			"waypoint": []
+		},
+		"horse": {
+			"position": [
+				-264.023254394531,
+				3.66879487037659,
+				69.319580078125
+			],
+			"yaw": 1.57076108455658
+		},
+		"player": {
+			"health": 100,
+			"location": "war_plains",
+			"mounted": false,
+			"position": [
+				-232.859405517578,
+				3.68710112571716,
+				70.0201263427734
+			],
+			"world_seed": 1337,
+			"yaw": -1.54737687110901
+		},
+		"story": {
+			"child_quest_done": false,
+			"rooftop_talk_done": false
+		}
+	},
+	"version": 2
+}

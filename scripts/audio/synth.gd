@@ -7,9 +7,11 @@ const RATE := 22050
 
 ## name -> [method, looping]
 const SOUNDS := {
+	"door_knock": ["_door_knock", false],
 	"wind_loop": ["_wind", true],
 	"leaves_loop": ["_leaves", true],
 	"crickets_loop": ["_crickets", true],
+	"birds_loop": ["_birds", true],
 	"water_loop": ["_water", true],
 	"waterfall_loop": ["_waterfall", true],
 	"scroll_hum_loop": ["_scroll_hum", true],
@@ -21,6 +23,10 @@ const SOUNDS := {
 	"footstep_2": ["_footstep_2", false],
 	"footstep_3": ["_footstep_3", false],
 	"footstep_water": ["_footstep_water", false],
+	"horse_hoof_1": ["_horse_hoof_1", false],
+	"horse_hoof_2": ["_horse_hoof_2", false],
+	"horse_hoof_3": ["_horse_hoof_3", false],
+	"horse_hoof_water": ["_horse_hoof_water", false],
 	"cave_drip": ["_cave_drip", false],
 	"transform": ["_transform", false],
 	"roar": ["_roar", false],
@@ -157,6 +163,28 @@ func _crickets() -> PackedFloat32Array:
 				_tone(s, t + p * 0.045, 0.028, f, f * 0.98, 0.25 - c * 0.08, 0.004)
 			t += 0.52 + rng.randf_range(-0.04, 0.04) + c * 0.07
 	return _normalize(s, 0.5)
+
+
+func _birds() -> PackedFloat32Array:
+	# Soft, irregular dawn chorus made from short, lightly detuned phrases.
+	var s := _buffer(12.0)
+	var at := 0.35
+	while at < 11.1:
+		var base := rng.randf_range(2350.0, 3450.0)
+		var notes := rng.randi_range(3, 5)
+		for n in notes:
+			var start := at + n * 0.09
+			var length := rng.randf_range(0.045, 0.105)
+			_tone(s, start, length, base + n * rng.randf_range(70.0, 180.0), base + rng.randf_range(-180.0, 220.0), rng.randf_range(0.12, 0.24), 0.006, [1.0, 0.12], 0.025)
+		at += rng.randf_range(1.2, 2.8)
+	# Crossfade the loop seam so the quiet bed does not click at the restart.
+	var fade := int(0.6 * RATE)
+	for i in fade:
+		var w := float(i) / fade
+		var head := s[i]
+		var tail := s[s.size() - fade + i]
+		s[i] = head * w + tail * (1.0 - w)
+	return _normalize(s, 0.35)
 
 
 func _water() -> PackedFloat32Array:
@@ -318,6 +346,48 @@ func _footstep_water() -> PackedFloat32Array:
 	return _normalize(s, 0.52)
 
 
+func _horse_hoof(variant: int, wet := false) -> PackedFloat32Array:
+	# Iron-shoe click, a short hollow hoof body, and a gritty surface tail.
+	rng.seed = 8821 + variant * 31 + (700 if wet else 0)
+	var seconds := 0.29 if wet else 0.22
+	var s := _buffer(seconds)
+	var low := 0.0
+	var mid := 0.0
+	var high := 0.0
+	var phase := 0.0
+	var thud_hz := rng.randf_range(92.0, 128.0)
+	var click_hz := rng.randf_range(1450.0, 2200.0)
+	for i in s.size():
+		var t := float(i) / RATE
+		var noise := rng.randf_range(-1.0, 1.0)
+		low += 0.045 * (noise - low)
+		mid += 0.22 * (noise - mid)
+		high += 0.68 * (noise - high)
+		phase += TAU * (click_hz - t * 2400.0) / RATE
+		var body := sin(TAU * thud_hz * t) * exp(-t * (24.0 if wet else 34.0))
+		var clip := sin(phase) * exp(-t * 95.0)
+		var grit := (mid - low) * exp(-t * 19.0) + (high - mid) * exp(-t * 34.0) * 0.2
+		var splash := (mid - low) * exp(-t * 12.0) * 0.42 if wet else 0.0
+		s[i] = (body * 0.46 + clip * 0.26 + grit * 0.58 + splash) * minf(1.0, t * 500.0)
+	return _normalize(s, rng.randf_range(0.44, 0.58))
+
+
+func _horse_hoof_1() -> PackedFloat32Array:
+	return _horse_hoof(1)
+
+
+func _horse_hoof_2() -> PackedFloat32Array:
+	return _horse_hoof(2)
+
+
+func _horse_hoof_3() -> PackedFloat32Array:
+	return _horse_hoof(3)
+
+
+func _horse_hoof_water() -> PackedFloat32Array:
+	return _horse_hoof(1, true)
+
+
 func _cave_drip() -> PackedFloat32Array:
 	var s := _buffer(1.2)
 	for e in 4:
@@ -462,3 +532,17 @@ func _power_up() -> PackedFloat32Array:
 	_tone(s, 0.0, 0.5, 660.0, 660.0, 0.3, 0.003, [1.0, 0.0, 0.2])
 	_tone(s, 0.09, 0.55, 990.0, 990.0, 0.3, 0.003, [1.0, 0.0, 0.2])
 	return _normalize(s, 0.55)
+
+
+func _door_knock() -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	out.resize(int(RATE * 0.9))
+	for i in out.size():
+		var t := float(i) / RATE
+		var value := 0.0
+		for onset in [0.0, 0.25, 0.52]:
+			var age: float = t - onset
+			if age >= 0 and age < 0.16:
+				value += exp(-age * 38) * (sin(TAU * 160 * age) * 0.5 + rng.randf_range(-0.2, 0.2))
+		out[i] = value
+	return out

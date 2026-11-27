@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_ctrl"]
 [ext_resource type="Script" path="res://scripts/player/player_interactor.gd" id="2_int"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/player/player_abilities.gd" id="4_abilities"]
 [ext_resource type="Script" path="res://scripts/characters/avatar_visual.gd" id="5_visual"]
 [ext_resource type="Script" path="res://scripts/player/view_model.gd" id="6_view"]
+[ext_resource type="Script" path="res://scripts/player/rider.gd" id="7_rider"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_1"]
 radius = 0.35
@@ -13,7 +14,7 @@ height = 1.8
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 collision_layer = 2
-collision_mask = 1
+collision_mask = 33
 floor_max_angle = 0.802851
 floor_snap_length = 0.45
 safe_margin = 0.02
@@ -52,3 +53,6 @@ script = ExtResource("5_visual")
 volume_db = -11.0
 unit_size = 4.0
 max_distance = 40.0
+
+[node name="Rider" type="Node" parent="."]
+script = ExtResource("7_rider")

@@ -96,13 +96,13 @@ static func conifer(height: float, base_r: float, spread: float, dark: float, se
 	bark.add_cylinder(Transform3D.IDENTITY, base_r, base_r * 0.18, height, 8 if detail > 0.6 else 6, Color(0.95, 0.9, 0.85), 0.0, 0.0, false)
 	var c := CardKit.new()
 	var y0 := height * 0.16
-	var step := 0.5 / clampf(detail, 0.3, 1.0)
-	var per := 5 if detail > 0.6 else 4
+	var step := 0.5 if detail > 0.6 else 0.78
+	var per := 5
 	var whorl := 0
 	var y := y0
 	while y < height * 0.93:
 		var t := (y - y0) / (height * 0.93 - y0)
-		var length := 0.45 + spread * pow(1.0 - t, 1.05)
+		var length := (0.45 + spread * pow(1.0 - t, 1.05)) * (1.0 if detail > 0.6 else 1.12)
 		var shade := (0.55 + 0.55 * t) * dark * rng.randf_range(0.9, 1.08)
 		for i in per:
 			var a := whorl * 2.399 + TAU * i / per + rng.randf_range(-0.25, 0.25)
@@ -113,7 +113,8 @@ static func conifer(height: float, base_r: float, spread: float, dark: float, se
 			var vert := dir.cross(side).normalized()
 			var n := (flat * 0.85 + Vector3.UP * 0.25).normalized()
 			var col := Color(shade, shade, shade)
-			_spray(c, start, dir * length, side * length * 0.42, n, 0.0, 0.25 + 0.75 * t, col)
+			var w_mult := 0.42 if detail > 0.6 else 0.58
+			_spray(c, start, dir * length, side * length * w_mult, n, 0.0, 0.25 + 0.75 * t, col)
 			if detail > 0.6:
 				_spray(c, start, dir * length * 0.9, vert * length * 0.28, n, 0.0, 0.25 + 0.75 * t, col * 0.92)
 		whorl += 1
@@ -213,7 +214,29 @@ static func fern() -> ArrayMesh:
 static func grass() -> ArrayMesh:
 	var c := CardKit.new()
 	for i in 3:
-		var a := PI * i / 3.0
-		var right := Vector3(cos(a), 0, sin(a)) * 0.42
-		_upright(c, Vector3.ZERO, right, Vector3.UP * 0.55, Vector3.UP, Vector3.UP, 0.0, 1.0, Color.WHITE)
+		var a := PI * i / 3.0 + 0.25 * float(i)
+		var right := Vector3(cos(a), 0, sin(a)) * 0.46
+		_upright(c, Vector3.ZERO, right, Vector3.UP * 0.62, Vector3.UP, Vector3.UP, 0.0, 1.0, Color.WHITE)
+	return _mesh(null, null, c, GRASS)
+
+
+## Taller two-segment arching meadow grass for golden-valley wind waves.
+static func grass_tall() -> ArrayMesh:
+	var c := CardKit.new()
+	for i in 3:
+		var a := PI * i / 3.0 + 0.18 * float(i)
+		var right := Vector3(cos(a), 0, sin(a)) * 0.56
+		var lean := Vector3(-sin(a), 0, cos(a)) * 0.14
+		var p0 := -right
+		var p1 := right
+		var m0 := -right * 0.92 + Vector3.UP * 0.48 + lean * 0.35
+		var m1 := right * 0.92 + Vector3.UP * 0.48 + lean * 0.35
+		var t0 := -right * 0.8 + Vector3.UP * 0.98 + lean
+		var t1 := right * 0.8 + Vector3.UP * 0.98 + lean
+		var shade_bot := Color(0.76, 0.78, 0.68)
+		var shade_top := Color(1.05, 1.02, 0.90)
+		c.quad([p0, p1, m1, m0], [Vector2(0, 1), Vector2(1, 1), Vector2(1, 0.5), Vector2(0, 0.5)],
+			[Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP], [0.0, 0.0, 0.45, 0.45], shade_bot)
+		c.quad([m0, m1, t1, t0], [Vector2(0, 0.5), Vector2(1, 0.5), Vector2(1, 0), Vector2(0, 0)],
+			[Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP], [0.45, 0.45, 1.0, 1.0], shade_top)
 	return _mesh(null, null, c, GRASS)

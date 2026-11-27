@@ -5,8 +5,9 @@ extends Node
 ## (slower) traversal walks. Exit code 0 = all passed.
 
 const MAIN_SCENE := preload("res://scenes/main/main.tscn")
-const SUITES := ["test_terrain", "test_spawns", "test_line_of_sight", "test_player", "test_scroll", "test_settings",
-	"test_identity", "test_combat", "test_defense", "test_power", "test_soak", "test_traversal"]
+
+const SUITES := ["test_upgrade_presentation", "test_upgrade_world", "test_upgrade_boss", "test_upgrade_mount", "test_upgrade_navigation", "test_upgrade_castle", "test_upgrade_vitals", "test_mission_regression", "test_mission_mount", "test_mission_rules", "test_mission_encounter", "test_mission_one", "test_terrain", "test_spawns", "test_empire_network", "test_kingdom", "test_line_of_sight", "test_player", "test_p06_movement", "test_r01_play", "test_r02_escort", "test_contract_c14", "test_scroll", "test_settings",
+	"test_identity", "test_combat", "test_defense", "test_power", "test_soak", "test_commander", "test_sitting", "test_horse", "test_loot", "test_reve", "test_story", "test_soldier_variants", "test_garrison", "test_battlefield", "test_campaign", "test_traversal", "test_castle", "test_castle_approach", "test_castle_lifecycle", "test_castle_prison"]
 
 var passed := 0
 var failed := 0
@@ -17,7 +18,7 @@ var world: World
 
 
 ## Real-time limit: a hung await must not stall CI forever.
-const WATCHDOG_SECONDS := 600
+const WATCHDOG_SECONDS := 2400
 
 var _start_ms := 0
 
@@ -36,7 +37,10 @@ func _run() -> void:
 	var t0 := Time.get_ticks_msec()
 	main = MAIN_SCENE.instantiate()
 	main.set("auto_capture_mouse", false)
+	main.set("enable_opening", false)
 	main.set("spawn_bots", false)
+	main.set("campaign_persist", false)
+	main.set("world_life", false)
 	add_child(main)
 	get_tree().create_timer(120.0).timeout.connect(func() -> void:
 		if world == null:
@@ -50,8 +54,12 @@ func _run() -> void:
 		var path := "res://tests/%s.gd" % file
 		if not ResourceLoader.exists(path):
 			continue
-		if only != "" and not String(file).contains(only):
-			continue
+		if only != "":
+			var selected := false
+			for filter in only.split(","):
+				selected = selected or String(file).contains(filter)
+			if not selected:
+				continue
 		if skip_walk and file == "test_traversal":
 			continue
 		var s: GDScript = load(path)

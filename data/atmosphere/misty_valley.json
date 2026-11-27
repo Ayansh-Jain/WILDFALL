@@ -1,0 +1,56 @@
+{
+	"id": "misty_valley",
+	"label": "Misty Morning Valley",
+	"sun": {
+		"elevation_deg": 14.0,
+		"azimuth_deg": 96.0,
+		"color": [1.0, 0.84, 0.66],
+		"energy": 1.06
+	},
+	"ambient": {
+		"color": [0.48, 0.56, 0.68],
+		"energy": 0.96,
+		"sky_contribution": 0.42
+	},
+	"sky": {
+		"zenith": [0.16, 0.34, 0.58],
+		"horizon": [0.74, 0.76, 0.78],
+		"ground": [0.22, 0.25, 0.27],
+		"celestial": [1.0, 0.88, 0.72],
+		"cloud_dark": [0.28, 0.34, 0.42],
+		"cloud_lit": [0.92, 0.90, 0.86],
+		"cloud_cover": 0.72,
+		"cloud_speed": 0.0020,
+		"star_amount": 0.0,
+		"daylight_factor": 0.82,
+		"sun_glow": 0.95
+	},
+	"fog": {
+		"enabled": true,
+		"color": [0.64, 0.69, 0.74],
+		"energy": 0.98,
+		"density": 0.00072,
+		"sky_affect": 0.22,
+		"aerial_perspective": 0.25,
+		"height": 6.5,
+		"height_density": 0.0068
+	},
+	"grading": {
+		"exposure": 1.02,
+		"saturation": 0.96,
+		"contrast": 1.04,
+		"glow_intensity": 0.38,
+		"glow_threshold": 1.12
+	},
+	"water": {
+		"shallow": [0.05, 0.19, 0.19],
+		"deep": [0.02, 0.08, 0.11]
+	},
+	"wind": {
+		"direction": [0.68, 0.73],
+		"strength": 0.85,
+		"speed": 1.15,
+		"gust": 0.32
+	},
+	"night_lamps": 0.25
+}

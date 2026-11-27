@@ -1,0 +1,124 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[GameState] world_seed=1337 scroll_seed=20240 dev_mode=true
+PASS no file means a new session
+PASS saving succeeds
+PASS two backups rotate and no temporary file is left
+PASS sections, flags and entities round trip
+PASS a truncated save recovers from backup
+PASS the damaged file is kept aside
+PASS saving over a recovered file works
+PASS a newer save is refused and left untouched
+PASS an unreadable old save starts fresh
+PASS an inactive session never writes
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 6393, "terrain_mesh": 765, "sites": 2107, "props": 3615 }  terrain steps: { &"_stamp_trails": 146, &"_kingdom_bounds": 529, &"_base_heights": 2400, &"_smooth_trails": 420, &"_flatten_sites": 48, &"_flatten_bridge_ends": 0, &"_carve_water": 80, &"_protect_trails": 7, &"_parse_cave": 0, &"_shape_cave": 65, &"_shape_castle_lift": 0, &"_paint_forest": 343, &"_grade_roads": 2345 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 1, &"_scatter_trees": 135, &"_scatter_logs": 5, &"_scatter_rocks": 108, &"_scatter_bushes": 125, &"_scatter_clutter": 2073, &"_scatter_riverbank": 982, &"_scatter_flower_patches": 12, &"_emit_multimeshes": 149 }
+[ScrollSpawner] seed 1273744709 -> marker 'cave_chamber'
+PASS an old campaign save is migrated  (migrated)
+PASS migrated roster and coins survive  (3 alive, 55 coins)
+PASS the old save file is not modified
+PASS every place has a standable travel point  ([])
+PASS every interaction and villager has ground nearby  ([])
+PASS ids are unique
+PASS walking up to a landmark discovers it  (["stone_bridge"])
+PASS returning does not announce it again
+PASS Ashford's people and bench are there when he is
+PASS a villager can be spoken to and control returns
+PASS they are freed when he is far away
+PASS the watchtower viewpoint activates instead
+PASS returning makes no duplicates  (9 then 9)
+PASS the crag viewpoint exists up there
+FAIL facing it shows its prompt  (<null>)
+FAIL and interacting works
+FAIL taking in the view marks places on the map
+PASS resting heals and saves
+FAIL and the save holds the interaction
+PASS a distant patrol does not exist
+PASS it appears, waiting, as he approaches
+PASS the patrol stands where authored
+PASS coming close starts the fight
+PASS no saving mid-fight
+PASS campaign combat direction takes the patrol
+PASS the patrol attacks through the single attack token  (2 attackers over time, health 100)
+PASS the Commander's swords hurt open-world enemies  (70 -> 20)
+PASS a death is recorded under the encounter id
+PASS leaving far behind releases the actors
+PASS the fallen enemy stays fallen  (1 living)
+PASS clearing is recorded once
+PASS a cleared encounter never returns
+PASS he wakes at a discovered safe place  ((240.0, 5.057517, 44.0))
+PASS death and respawn return control  ((240.0, 5.0582, 44.0))
+PASS the horse is far behind
+PASS H brings the same horse across the kingdom  (3.2 m)
+PASS there is still exactly one horse
+PASS the map opens and pauses the game
+PASS map coordinates are world coordinates
+PASS zoomed, they still match and north is up
+PASS a click marks a destination
+PASS closing resumes the game
+PASS compass bearings: north and east
+PASS the wind blows toward the mark
+PASS the Great Gate approach is reached and recorded
+PASS an escort is with him  ([2, 3, 4])
+PASS manual save works
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 7003, "terrain_mesh": 860, "sites": 2207, "props": 4722 }  terrain steps: { &"_stamp_trails": 179, &"_kingdom_bounds": 560, &"_base_heights": 2724, &"_smooth_trails": 431, &"_flatten_sites": 47, &"_flatten_bridge_ends": 0, &"_carve_water": 83, &"_protect_trails": 5, &"_parse_cave": 0, &"_shape_cave": 87, &"_shape_castle_lift": 0, &"_paint_forest": 415, &"_grade_roads": 2462 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 1, &"_scatter_trees": 209, &"_scatter_logs": 7, &"_scatter_rocks": 147, &"_scatter_bushes": 149, &"_scatter_clutter": 2520, &"_scatter_riverbank": 1534, &"_scatter_flower_patches": 10, &"_emit_multimeshes": 120 }
+[ScrollSpawner] seed 780433641 -> marker 'cave_chamber'
+PASS the world save is loaded next time  (loaded)
+PASS he returns where he saved  (0.01 m)
+PASS standing on solid ground with control
+PASS health is restored  (79)
+PASS discoveries survive  (8 / 8)
+PASS the cleared encounter stays cleared
+PASS the horse is where he left it
+PASS casualties persist  (2 / 2)
+PASS the same living soldiers are his escort  ([3, 4] / [3, 4])
+PASS campaign progress survives
+PASS the old save is still untouched
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 6926, "terrain_mesh": 955, "sites": 2171, "props": 4192 }  terrain steps: { &"_stamp_trails": 188, &"_kingdom_bounds": 523, &"_base_heights": 2679, &"_smooth_trails": 406, &"_flatten_sites": 49, &"_flatten_bridge_ends": 0, &"_carve_water": 91, &"_protect_trails": 8, &"_parse_cave": 0, &"_shape_cave": 97, &"_shape_castle_lift": 0, &"_paint_forest": 370, &"_grade_roads": 2506 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 1, &"_scatter_trees": 173, &"_scatter_logs": 7, &"_scatter_rocks": 129, &"_scatter_bushes": 150, &"_scatter_clutter": 2363, &"_scatter_riverbank": 1216, &"_scatter_flower_patches": 11, &"_emit_multimeshes": 120 }
+[ScrollSpawner] seed 1133710827 -> marker 'cave_chamber'
+PASS a damaged save falls back to a backup  (recovered)
+PASS with progress intact
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 6499, "terrain_mesh": 887, "sites": 2410, "props": 4108 }  terrain steps: { &"_stamp_trails": 187, &"_kingdom_bounds": 493, &"_base_heights": 2519, &"_smooth_trails": 406, &"_flatten_sites": 37, &"_flatten_bridge_ends": 0, &"_carve_water": 87, &"_protect_trails": 7, &"_parse_cave": 0, &"_shape_cave": 84, &"_shape_castle_lift": 0, &"_paint_forest": 397, &"_grade_roads": 2273 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 0, &"_scatter_trees": 172, &"_scatter_logs": 7, &"_scatter_rocks": 123, &"_scatter_bushes": 155, &"_scatter_clutter": 2285, &"_scatter_riverbank": 1205, &"_scatter_flower_patches": 9, &"_emit_multimeshes": 129 }
+[ScrollSpawner] seed 287417493 -> marker 'cave_chamber'
+PASS an impossible saved position becomes a safe one  ((245.0, 2.446508, -215.0))
+PASS without losing other progress
+PASS terrain that never loads ends in a safe fallback
+PASS control is always returned
+PASS ready terrain is used
+PASS streaming can withhold content
+PASS and release it again
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 6751, "terrain_mesh": 795, "sites": 2097, "props": 3826 }  terrain steps: { &"_stamp_trails": 191, &"_kingdom_bounds": 509, &"_base_heights": 2677, &"_smooth_trails": 447, &"_flatten_sites": 43, &"_flatten_bridge_ends": 1, &"_carve_water": 85, &"_protect_trails": 8, &"_parse_cave": 0, &"_shape_cave": 93, &"_shape_castle_lift": 0, &"_paint_forest": 366, &"_grade_roads": 2323 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 0, &"_scatter_trees": 140, &"_scatter_logs": 7, &"_scatter_rocks": 117, &"_scatter_bushes": 121, &"_scatter_clutter": 2010, &"_scatter_riverbank": 1260, &"_scatter_flower_patches": 9, &"_emit_multimeshes": 139 }
+[ScrollSpawner] seed 926220373 -> marker 'cave_chamber'
+PASS journey: leave the castle on foot
+PASS journey: the horse answers outside the castle  (3.3 m)
+PASS journey: mounted
+PASS journey: ride to Golden Valley  (31 s, 2.8 m short, 0 frames under ground, at (102.0, 6.0, 207.0))
+PASS journey: ride to Southbank  (10 s, 1.7 m short, 0 frames under ground, at (81.0, 6.0, 231.0))
+PASS journey: ride to Stone Bridge  (29 s, 1.5 m short, 0 frames under ground, at (45.0, 4.0, 165.0))
+PASS journey: ride to back over the bridge  (17 s, 1.7 m short, 0 frames under ground, at (94.0, 5.0, 182.0))
+PASS journey: ride to Castle Square  (81 s, 1.7 m short, 0 frames under ground, at (232.0, 5.0, 98.0))
+PASS journey: ride to Ashford  (17 s, 1.7 m short, 0 frames under ground, at (240.0, 6.0, 48.0))
+PASS journey: ride to Northmere  (57 s, 1.7 m short, 0 frames under ground, at (145.0, 4.0, -77.0))
+PASS journey: ride to North Bridge  (35 s, 1.8 m short, 0 frames under ground, at (78.0, 5.0, -150.0))
+PASS journey: ride to forest road patrol  (92 s, 1.7 m short, 0 frames under ground, at (-131.0, 6.0, 20.0))
+PASS journey: ride to the Great Gate  (49 s, 1.7 m short, 0 frames under ground, at (-264.0, 4.0, 70.0))
+PASS journey: still one horse
+PASS journey: walk the War Plains  (4 s, 0.9 m short, 0 frames under ground, at (-233.0, 4.0, 70.0))
+PASS journey: places discovered along the way  (["lakeside_castle", "golden_valley", "southbank", "stone_bridge", "ashford", "castle_square", "northmere", "north_bridge", "war_plains", "great_gate"])
+PASS journey: save at the gate
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 6884, "terrain_mesh": 905, "sites": 2346, "props": 4415 }  terrain steps: { &"_stamp_trails": 218, &"_kingdom_bounds": 512, &"_base_heights": 2565, &"_smooth_trails": 418, &"_flatten_sites": 44, &"_flatten_bridge_ends": 0, &"_carve_water": 85, &"_protect_trails": 6, &"_parse_cave": 0, &"_shape_cave": 78, &"_shape_castle_lift": 0, &"_paint_forest": 409, &"_grade_roads": 2538 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 1, &"_scatter_trees": 177, &"_scatter_logs": 7, &"_scatter_rocks": 147, &"_scatter_bushes": 174, &"_scatter_clutter": 2470, &"_scatter_riverbank": 1276, &"_scatter_flower_patches": 10, &"_emit_multimeshes": 130 }
+[ScrollSpawner] seed 1544698457 -> marker 'cave_chamber'
+PASS journey: reload at the same place
+PASS journey: set off home along the road  (16 s, 0.9 m short, 0 frames under ground, at (-189.0, 4.0, 13.0))
+[r03-world] 92 passed, 4 failed

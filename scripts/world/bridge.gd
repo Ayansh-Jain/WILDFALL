@@ -54,12 +54,20 @@ static func build(parent: Node3D, world: World, def: Dictionary) -> StaticBody3D
 		var seg_len := p0.distance_to(p1) + 0.1
 		var mid := (p0 + p1) * 0.5
 		add_box.call(mid - y * thick * 0.5, Vector3(seg_len, thick, width), basis, (STONE if stone_style else WOOD) * (0.92 + 0.12 * (i % 2)), true)
+		if stone_style:
+			# Underside arch ribs and stone kerb courses for stronger bridge silhouette.
+			kit.add_box(Transform3D(basis, mid - y * (thick + 0.18)), Vector3(seg_len * 0.88, 0.38, width * 0.86), STONE * 0.78)
 		for s in [-1.0, 1.0]:
 			var edge: Vector3 = mid + side * s * (width * 0.5 - 0.12)
 			if stone_style:
 				add_box.call(edge + y * 0.4, Vector3(seg_len, 0.8, 0.35), basis, STONE * 0.9, true)
+				# Chamfered coping cap & buttress pilaster every 3rd segment.
+				kit.add_box(Transform3D(basis, edge + y * 0.84), Vector3(seg_len + 0.04, 0.14, 0.46), STONE * 1.04)
+				if i % 3 == 0:
+					kit.add_box(Transform3D(basis, edge + side * s * 0.24 + y * 0.2), Vector3(0.45, 1.25, 0.25), STONE * 0.82)
 			else:
 				add_box.call(edge + y * 1.0, Vector3(seg_len, 0.12, 0.12), basis, WOOD_DARK, false)
+				add_box.call(edge + y * 0.56, Vector3(seg_len, 0.08, 0.08), basis, WOOD * 0.9, false)
 				kit.add_box(Transform3D(Basis.IDENTITY, p0 + side * s * (width * 0.5 - 0.12) + Vector3(0, 0.5, 0)), Vector3(0.16, 1.1, 0.16), WOOD_DARK)
 				# The rail itself is thin; give it a full-height collider so it reads as solid.
 				var rs := BoxShape3D.new()
@@ -73,12 +81,23 @@ static func build(parent: Node3D, world: World, def: Dictionary) -> StaticBody3D
 				var plank_c: Vector3 = mid + x * (seg_len * (k - 1) / 3.0) + y * 0.005
 				kit.add_box(Transform3D(basis, plank_c), Vector3(0.05, 0.02, width * 0.98), WOOD_DARK)
 
-	# Supports: wooden piles or a central stone pier.
+	# Supports: wooden piles with diagonal bracing or a central cutwater stone pier.
 	if stone_style:
 		var c: Vector3 = top.call(0.5)
 		var bed := td.height_at(c.x, c.z)
 		var h := c.y - thick - bed + 1.0
-		add_box.call(Vector3(c.x, bed - 1.0 + h * 0.5, c.z), Vector3(2.6, h, width + 0.6), Basis(Vector3.UP, atan2(-(b - a).y, (b - a).x)), STONE * 0.85, true)
+		var yaw_b := atan2(-(b - a).y, (b - a).x)
+		add_box.call(Vector3(c.x, bed - 1.0 + h * 0.5, c.z), Vector3(2.6, h, width + 0.6), Basis(Vector3.UP, yaw_b), STONE * 0.85, true)
+		kit.add_box(Transform3D(Basis(Vector3.UP, yaw_b + PI * 0.25), Vector3(c.x, bed - 1.0 + h * 0.45, c.z)), Vector3(width * 0.82, h * 0.9, width * 0.82), STONE * 0.78)
+		# End bollards at both bridge approaches.
+		var dir2 := (b - a).normalized()
+		var side2 := Vector2(-dir2.y, dir2.x)
+		for end_pt: Vector2 in [a, b]:
+			for s: float in [-1.0, 1.0]:
+				var bp := end_pt + side2 * s * (width * 0.5 + 0.1)
+				var gy := td.height_at(bp.x, bp.y)
+				kit.add_box(Transform3D(Basis(Vector3.UP, yaw_b), Vector3(bp.x, gy + 0.55, bp.y)), Vector3(0.55, 1.35, 0.55), STONE * 0.95)
+				kit.add_box(Transform3D(Basis(Vector3.UP, yaw_b), Vector3(bp.x, gy + 1.28, bp.y)), Vector3(0.68, 0.18, 0.68), STONE * 1.08)
 	else:
 		for t in [0.3, 0.5, 0.7]:
 			var c: Vector3 = top.call(t)

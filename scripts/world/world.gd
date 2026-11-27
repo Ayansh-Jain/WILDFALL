@@ -19,22 +19,14 @@ var timings := {}
 @onready var moon: DirectionalLight3D = $Moon
 @onready var environment: Environment = $WorldEnvironment.environment
 
-## Moon elevation/azimuth in degrees. The sky shader draws the disc along this light.
-@export var moon_rotation := Vector3(-38.0, -135.0, 0.0)
-
-
-func _ready() -> void:
-	moon.rotation_degrees = moon_rotation
-	# The water fakes its moon reflection; point it at the actual moon.
-	WATER_MAT.set_shader_parameter("moon_dir", moon.global_transform.basis.z)
-
-
 func generate() -> void:
 	var t := Time.get_ticks_msec()
 	layout = WorldLayout.load_default()
 	water_level = layout.water_level
 	terrain_data = TerrainData.new()
 	terrain_data.generate(layout, GameState.world_seed)
+	PlayerController.terrain_height_query = terrain_data.height_at
+	PlayerController.terrain_hole_query = terrain_data.is_hole_at
 	_mark("terrain_data", t)
 
 	t = Time.get_ticks_msec()

@@ -65,10 +65,31 @@ func run(t) -> void:
 	t.check(r["ok"] and player.global_position.y > w.terrain_height(215, -90) - 0.5, "Sentinel Crag summit is reachable", "y %.1f" % player.global_position.y)
 	r = await _route(t, w, drv, "chapel interior", _v([[-95, 150], [-95, 140], [-95, 124]]))
 	r = await _route(t, w, drv, "lakeside castle courtyard", _v([[182, 152], [194, 150], [204, 150], [212, 154]]))
+	var cc := WorldLayout.v2(w.layout.find_site("Lakeside Castle")["center"])
+	var hk := w.site_height("Lakeside Castle")
+	var sites := w.get_node("Sites/Structures") as Sites
+	(sites.bedroom_door.get_node("OpenBedroomDoor") as Interactable).interact(player)
+	r = await _route(t, w, drv, "castle keep: great hall -> stair hall -> commander's balcony", _keep_local(sites, [
+		[8, 3], [14, -5], [19.5, -5.5], [23.4, -5.8], [23.4, 2.0], [22.5, 3.5], [19.4, 3.5], [19.4, -2.0],
+		[19.4, -5.9], [15.5, -5.7], [3, -4.0], [0.5, -1.4], [-3.0, -1.4], [-3.0, -5.5], [-3.2, -8.5],
+		[-5.5, -12.0], [-3.0, -20.5], [-2.8, -25.5]]), {"start_y": hk + 2.0, "reach": 0.9})
+	t.check(r["ok"] and player.global_position.y > hk + 12.4 and sites.castle_from_world(player.global_position).z < -24.0,
+		"the keep's first floor and the commander's balcony are reachable on foot",
+		"at %s" % str(player.global_position - Vector3(cc.x, hk, cc.y)))
+	r = await _route(t, w, drv, "castle keep: first floor -> stair hall -> roof, where Princess Reve waits", _keep_local(sites, [
+		[19.0, -6.0], [23.4, -5.7], [23.4, 0.8], [22.8, 2.4], [19.4, 2.4], [19.4, -3.0], [19.4, -5.3],
+		[16.0, -5.6], [17.5, -11.0], [18.0, -18.5], [10.0, -18.8], [0.0, -19.0], [-4.6, -20.3]]), {"start_y": hk + 14.0, "reach": 0.9})
+	t.check(r["ok"] and player.global_position.y > hk + 22.0, "the keep roof is reachable on foot (no steep stair)",
+		"at %s" % str(player.global_position - Vector3(cc.x, hk, cc.y)))
+	player.teleport(Vector3(cc.x - 5.0, hk - 11.4, cc.y + 9.0))
+	await drv.frames(40)
+	t.check(not player.is_swimming and not player.is_camera_underwater() and absf(player.global_position.y - (hk - 11.65)) < 0.5,
+		"the crypt below the lake's water line is dry ground", "y %.2f swimming %s" % [player.global_position.y - hk, player.is_swimming])
 	r = await _route(t, w, drv, "ferryman's hut", _v([[100, -224], [107, -224], [112, -224]]))
 
 	# 3. Off-trail crossings of the deep forest (hide-and-seek routes).
-	r = await _route(t, w, drv, "off-trail: west deep forest", _v([[-250, 0], [-220, 50], [-180, 100], [-150, 120]]))
+	# The west woods now open onto the Great Gate Field; leave its ring of houses by the King's Way gap.
+	r = await _route(t, w, drv, "off-trail: west deep forest", _v([[-250, 0], [-220, 50], [-196, 71], [-168, 76], [-150, 120]]))
 	r = await _route(t, w, drv, "off-trail: south-west woods", _v([[-170, 230], [-120, 190], [-60, 140]]))
 	r = await _route(t, w, drv, "off-trail: north-east woods", _v([[140, -180], [180, -150], [220, -160]]))
 
@@ -122,4 +143,11 @@ func _densify(pts: PackedVector2Array, step: float) -> Array:
 			out.append(Vector3(p.x, 0, p.y))
 	var last := pts[pts.size() - 1]
 	out.append(Vector3(last.x, 0, last.y))
+	return out
+
+
+func _keep_local(sites: Sites, points: Array) -> Array:
+	var out := []
+	for p in points:
+		out.append(sites.castle_to_world(Vector3(p[0], 0, p[1])))
 	return out

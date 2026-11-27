@@ -1,0 +1,51 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/horse/horse.gd" id="1_horse"]
+[ext_resource type="Script" path="res://scripts/horse/horse_rig.gd" id="2_rig"]
+[ext_resource type="Script" path="res://scripts/interactions/interactable.gd" id="3_int"]
+
+[sub_resource type="CapsuleShape3D" id="Body"]
+radius = 0.4
+height = 2.25
+
+[sub_resource type="SphereShape3D" id="Head"]
+radius = 0.24
+
+[sub_resource type="CapsuleShape3D" id="Legs"]
+radius = 0.3
+height = 0.95
+
+[sub_resource type="SphereShape3D" id="Mount"]
+radius = 0.9
+
+[node name="Horse" type="CharacterBody3D" groups=["horses"]]
+collision_layer = 32
+collision_mask = 3
+floor_max_angle = 0.733038
+floor_snap_length = 0.6
+safe_margin = 0.03
+script = ExtResource("1_horse")
+
+[node name="BodyShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 1.2, -0.05)
+shape = SubResource("Body")
+
+[node name="HeadShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, -1.42)
+shape = SubResource("Head")
+
+[node name="LegShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.475, -0.05)
+shape = SubResource("Legs")
+
+[node name="Rig" type="Node3D" parent="."]
+script = ExtResource("2_rig")
+
+[node name="MountPoint" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -0.25)
+script = ExtResource("3_int")
+prompt_text = "Mount"
+max_view_angle = 55.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MountPoint"]
+shape = SubResource("Mount")

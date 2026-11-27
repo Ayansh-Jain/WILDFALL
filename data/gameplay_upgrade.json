@@ -1,0 +1,18 @@
+{
+  "regen_hp_per_second": 2.0,
+  "regen_delay": 3.0,
+  "kill_coins": 500,
+  "horse_recall_distance": 100.0,
+  "army_recovery_distance": 75.0,
+  "boss": {
+    "health": 400,
+    "damage": 30,
+    "scale": 1.6,
+    "speed": 2.3,
+    "range": 3.5,
+    "windup": 1.0,
+    "recovery": 1.2,
+    "cooldown": 2.7
+  },
+  "cinematic_seconds": 15.0
+}

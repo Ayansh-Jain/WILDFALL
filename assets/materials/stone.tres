@@ -1,13 +1,21 @@
-[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b8mliqb162qr0"]
 
-[ext_resource type="Shader" path="res://assets/materials/stone_tri.gdshader" id="1"]
-[ext_resource type="Texture2D" path="res://assets/textures/castle_wall_slates_diff.jpg" id="2"]
-[ext_resource type="Texture2D" path="res://assets/textures/castle_wall_slates_nor.jpg" id="3"]
+[ext_resource type="Shader" uid="uid://8s2bnoweg1h8" path="res://assets/materials/stone_tri.gdshader" id="1"]
+[ext_resource type="Texture2D" uid="uid://cdrbv6mbl0xna" path="res://assets/textures/castle_wall_slates_diff.jpg" id="2"]
+[ext_resource type="Texture2D" uid="uid://c3lv8u8yfitd2" path="res://assets/textures/castle_wall_slates_nor.jpg" id="3"]
 
 [resource]
+render_priority = 0
 shader = ExtResource("1")
 shader_parameter/stone_tex = ExtResource("2")
 shader_parameter/stone_nrm = ExtResource("3")
 shader_parameter/scale = 0.42
+shader_parameter/normal_strength = 0.9
+shader_parameter/moss_color = Color(0.16, 0.24, 0.1, 1)
 shader_parameter/moss_amount = 0.3
 shader_parameter/tint_strength = 0.35
+shader_parameter/brightness = 1.0
+shader_parameter/saturation = 1.0
+shader_parameter/object_space = false
+shader_parameter/macro_strength = 0.2
+shader_parameter/macro_hue = 0.6

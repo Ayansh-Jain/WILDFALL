@@ -39,6 +39,12 @@ const MOSS := Color(0.24, 0.31, 0.17)
 	set(v):
 		color = v
 		_queue_rebuild()
+## Replaces the weathered ruin stone (e.g. dressed masonry for a lived-in keep).
+## Pieces with an override also leave out the moss bands and caps.
+@export var stone_material: Material:
+	set(v):
+		stone_material = v
+		_queue_rebuild()
 ## BRAZIER only: add a warm OmniLight3D.
 @export var lit := true:
 	set(v):
@@ -91,7 +97,7 @@ func rebuild() -> void:
 		Kind.RUBBLE: _rubble()
 		Kind.FALLEN_PILLAR: _fallen_pillar()
 		Kind.BLOCK: _block()
-	_emit_mesh(_kit, STONE_MAT, true)
+	_emit_mesh(_kit, stone_material if stone_material else STONE_MAT, true)
 	_emit_mesh(_glow, _glow_mat, false)
 
 
@@ -154,11 +160,11 @@ func _wall() -> void:
 		var cut := broken * pow(_rng.randf(), 1.4)
 		var h := maxf(height * (1.0 - cut), minf(0.7, height))
 		var x := -length * 0.5 + seg_len * (i + 0.5)
-		var zoff := _rng.randf_range(-0.04, 0.04)
+		var zoff := _rng.randf_range(-0.04, 0.04) * (0.0 if stone_material else 1.0)
 		_solid_box(Vector3(x, h * 0.5, zoff), Vector3(seg_len + 0.02, h, thick))
 		if cut < 0.08:
 			_kit.add_box(Transform3D(Basis.IDENTITY, Vector3(x, h + 0.09, 0)), Vector3(seg_len + 0.05, 0.18, thick + 0.16), _stone_col(STONE_DARK))
-		elif _rng.randf() < 0.35:
+		elif _rng.randf() < 0.35 and not stone_material:
 			_kit.add_box(Transform3D(Basis.IDENTITY, Vector3(x, h + 0.02, zoff)), Vector3(seg_len * 0.9, 0.08, thick * 0.9), MOSS)
 	var fallen := int(broken * 4.0 * _rng.randf())
 	for i in fallen:
@@ -173,7 +179,7 @@ func _pillar() -> void:
 	var h := size.y
 	_solid_box(Vector3(0, 0.25, 0), Vector3(r * 2.6, 0.5, r * 2.6))
 	var shaft_h := h * (1.0 - broken * _rng.randf_range(0.3, 0.8))
-	_kit.add_cylinder(Transform3D(Basis.IDENTITY, Vector3(0, 0.5, 0)), r, r * 0.9, shaft_h - 0.5, 8, _stone_col())
+	_kit.add_cylinder(Transform3D(Basis.IDENTITY, Vector3(0, 0.5, 0)), r, r * 0.9, shaft_h - 0.5, 12 if r > 1.5 else 8, _stone_col())
 	var cyl := CylinderShape3D.new()
 	cyl.radius = r
 	cyl.height = shaft_h - 0.5
@@ -192,7 +198,8 @@ func _pillar() -> void:
 			var a := TAU * i / 4.0 + 0.4
 			if shaft_h > 4.0:
 				_kit.add_box(Transform3D(Basis(Vector3.UP, -a), Vector3(cos(a) * r * 0.93, shaft_h * 0.6, sin(a) * r * 0.93)), Vector3(0.25, 1.2, 0.5), Color(0.05, 0.05, 0.06))
-		_kit.add_cylinder(Transform3D(Basis.IDENTITY, Vector3(0, 0.5, 0)), r * 1.02, r * 1.0, 0.6, 8, MOSS)
+		if not stone_material:
+			_kit.add_cylinder(Transform3D(Basis.IDENTITY, Vector3(0, 0.5, 0)), r * 1.02, r * 1.0, 0.6, 8, MOSS)
 
 
 func _archway() -> void:
@@ -248,7 +255,8 @@ func _platform() -> void:
 	for cx in [-1.0, 1.0]:
 		for cz in [-1.0, 1.0]:
 			_kit.add_box(Transform3D(Basis.IDENTITY, Vector3(cx * size.x * 0.5, size.y * 0.5, cz * size.z * 0.5)), Vector3(0.7, size.y + 0.05, 0.7), _stone_col(STONE_DARK))
-	_kit.add_box(Transform3D(Basis.IDENTITY, Vector3(0, 0.3, 0)), Vector3(size.x + 0.15, 0.6, size.z + 0.15), MOSS * 0.9)
+	if not stone_material:
+		_kit.add_box(Transform3D(Basis.IDENTITY, Vector3(0, 0.3, 0)), Vector3(size.x + 0.15, 0.6, size.z + 0.15), MOSS * 0.9)
 
 
 func _brazier() -> void:

@@ -9,7 +9,7 @@ const PROPS_MAT := preload("res://assets/materials/props.tres")
 const BEACON := preload("res://assets/materials/glow_beacon.tres")
 const BEACON_TEAL := preload("res://assets/materials/glow_beacon_teal.tres")
 const RUNES := preload("res://assets/materials/glow_magic.tres")
-const CANOPY_SHADER := preload("res://assets/materials/lowpoly.gdshader")
+const CANOPY_CARDS := preload("res://assets/materials/leaves.tres")
 
 const BARK := Color(0.34, 0.26, 0.21)
 const CANOPY := Color(0.13, 0.27, 0.23)
@@ -28,7 +28,7 @@ static func build(parent: Node3D, o: Vector3, world: World) -> void:
 	rng.seed = 4242
 	var stone := MeshKit.new(4241, 0.06)
 	var bark := MeshKit.new(4242, 0.08)
-	var leaves := MeshKit.new(4243, 0.12)
+	var leaf_cards := FoliageMeshes.CardKit.new()
 	var warm := MeshKit.new(4244)
 	var teal := MeshKit.new(4245)
 	var runes := MeshKit.new(4246)
@@ -98,7 +98,7 @@ static func build(parent: Node3D, o: Vector3, world: World) -> void:
 		cap.height = axis.length() * 0.8
 		add_shape.call(cap, Transform3D(basis_y(axis), p0 + axis * 0.45 + Vector3(0, -0.35, 0)))
 
-	# Branches, canopy blobs and hanging orbs.
+	# Branches, leaf canopy and hanging orbs.
 	var orb_sites: Array[Vector3] = []
 	for i in 7:
 		var a := TAU * i / 7.0 + rng.randf_range(-0.3, 0.3)
@@ -111,10 +111,24 @@ static func build(parent: Node3D, o: Vector3, world: World) -> void:
 		var sub_start := start + dir * length * 0.55
 		bark.add_cylinder(Transform3D(basis_y(sub_dir), sub_start), 0.6, 0.15, length * 0.6, 5, BARK)
 		for c in [end, sub_start + sub_dir * length * 0.6]:
-			var rad := rng.randf_range(6.0, 8.5)
-			leaves.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(1.0, 0.62, 1.0)), c + Vector3(0, 1.0, 0)), rad, CANOPY * rng.randf_range(0.85, 1.2), true, 0.22, 0.5)
 			orb_sites.append(c)
-	leaves.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(1.0, 0.7, 1.0)), trunk_top + Vector3(0, 4, 0)), 10.0, CANOPY, true, 0.2, 0.4)
+
+	# Build the crown from overlapping textured leaf cards like the forest trees.
+	# Small, irregular clusters break up the giant faceted blobs while keeping a
+	# dense rounded silhouette around the Elder Tree's broad limbs.
+	var canopy_center := trunk_top + Vector3(0, 4.0, 0)
+	for i in 1500:
+		var dir := Vector3(rng.randf_range(-1.0, 1.0), rng.randf_range(-0.85, 1.0), rng.randf_range(-1.0, 1.0)).normalized()
+		var radius := pow(rng.randf(), 0.52)
+		var center := canopy_center + Vector3(dir.x * 23.0, dir.y * 11.5, dir.z * 22.0) * radius
+		var facing := (dir + Vector3(rng.randf_range(-0.65, 0.65), rng.randf_range(-0.45, 0.65), rng.randf_range(-0.65, 0.65))).normalized()
+		var size := rng.randf_range(2.8, 4.8)
+		var shade := rng.randf_range(0.78, 1.2) * (1.08 if dir.y > 0.25 else 0.92)
+		var leaf_color := Color(CANOPY.r * shade, CANOPY.g * shade, CANOPY.b * shade)
+		FoliageMeshes._cluster(leaf_cards, center, facing, size, canopy_center, rng, 0.65 + radius * 0.35, leaf_color)
+		if i % 3 == 0:
+			var second_center := center + Vector3(rng.randf_range(-1.2, 1.2), rng.randf_range(-0.8, 0.8), rng.randf_range(-1.2, 1.2))
+			FoliageMeshes._cluster(leaf_cards, second_center, Vector3(-facing.z, facing.y, facing.x), size * rng.randf_range(0.65, 0.9), canopy_center, rng, 0.7 + radius * 0.3, leaf_color * 1.04)
 	for i in orb_sites.size() * 2:
 		var site: Vector3 = orb_sites[i % orb_sites.size()]
 		var hang := rng.randf_range(3.0, 8.0)
@@ -125,11 +139,15 @@ static func build(parent: Node3D, o: Vector3, world: World) -> void:
 
 	_emit(parent, stone, STONE_MAT, true)
 	_emit(parent, bark, PROPS_MAT, true)
-	var canopy_mat := ShaderMaterial.new()
-	canopy_mat.shader = CANOPY_SHADER
-	canopy_mat.set_shader_parameter("wind_strength", 0.25)
+	var canopy_mat: ShaderMaterial = CANOPY_CARDS.duplicate()
+	canopy_mat.set_shader_parameter("tint", Color(0.78, 0.88, 0.78))
+	canopy_mat.set_shader_parameter("wind_strength", 0.07)
 	canopy_mat.set_shader_parameter("wind_speed", 0.4)
-	_emit(parent, leaves, canopy_mat, true)
+	canopy_mat.set_shader_parameter("translucency", 0.18)
+	var canopy_instance := MeshInstance3D.new()
+	canopy_instance.mesh = FoliageMeshes._mesh(null, null, leaf_cards, canopy_mat)
+	canopy_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	parent.add_child(canopy_instance)
 	_emit(parent, warm, BEACON, false)
 	_emit(parent, teal, BEACON_TEAL, false)
 	_emit(parent, runes, RUNES, false)

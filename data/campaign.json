@@ -1,0 +1,967 @@
+{
+  "_doc": "Campaign configuration (read by CampaignDirector / CampaignState). Five mission slots; the King briefs one mission per evening council. Positions are world [x, z]. Mission areas refer to kingdom.missions ids in world_layout.json. Enemy counts, waves and objectives are data: change them here, not in code.",
+  "version": 1,
+  "save_path": "user://campaign_save.json",
+  "council": {
+    "_doc": "The King holds council in the great hall in the evening. Outside these hours he tells the commander to return at dusk and offers to wait for the council.",
+    "from_hour": 17.0,
+    "to_hour": 23.5,
+    "wait_to_hour": 18.0,
+    "hall_trigger_radius": 9.0
+  },
+  "army": {
+    "_doc": "Roster sizes exclude the commander. Each completed mission with reward_soldiers > 0 adds that many recruits; the dead stay dead.",
+    "start_size": 4,
+    "growth_per_mission": 10,
+    "horses": 4,
+    "follow_spacing": 2.4,
+    "names": [
+      "Aldric",
+      "Bram",
+      "Cedric",
+      "Dunstan",
+      "Edwin",
+      "Falk",
+      "Godric",
+      "Hal",
+      "Ivo",
+      "Jory",
+      "Kester",
+      "Leof",
+      "Merek",
+      "Nyle",
+      "Osric",
+      "Piers",
+      "Quill",
+      "Rowan",
+      "Sim",
+      "Tobin",
+      "Ulric",
+      "Vance",
+      "Wat",
+      "Wystan",
+      "Ansel",
+      "Berold",
+      "Colm",
+      "Drogo",
+      "Eadric",
+      "Fulk",
+      "Gerold",
+      "Hamon",
+      "Ingram",
+      "Jocelin",
+      "Kenric",
+      "Lambert",
+      "Milo",
+      "Norris",
+      "Odo",
+      "Pell",
+      "Ranulf",
+      "Serlo",
+      "Tancred",
+      "Udo",
+      "Walter",
+      "Yves"
+    ]
+  },
+  "battlefield": {
+    "_doc": "Group combat (Phase 4). Soldiers fight from approach slots around a target instead of its exact position: slot_count positions at slot_radius (kept inside sword reach), at most max_per_target blades on one target (max_per_leader on the commander) and max_per_sector from any one 90-degree direction, with open_slots always left free. A soldier whose target is ringed waits at wait_radius for a slot, then finds another fight. personal_space = preferred distance between friends. assist_radius = how far a free soldier looks for a friend still fighting. leader_danger = commander health fraction below which nearby allies prioritise his attackers. spawn_* = how battle squads are laid out (spacing, jitter, minimum gap between any two spawns); lane_distance = how far in front of the defenders each enemy squad's approach point lies.",
+    "personal_space": 1.3,
+    "slot_count": 10,
+    "slot_radius": 1.6,
+    "max_per_target": 3,
+    "max_per_leader": 3,
+    "max_per_sector": 2,
+    "open_slots": 2,
+    "wait_radius": 4.6,
+    "assist_radius": 45.0,
+    "leader_danger": 0.4,
+    "spawn_spacing": 3.6,
+    "spawn_jitter": 0.9,
+    "min_spawn_gap": 1.9,
+    "lane_distance": 9.0
+  },
+  "safe_point": {
+    "_doc": "Where Quit returns the commander (castle courtyard, outside the keep door).",
+    "pos": [
+      212,
+      167
+    ]
+  },
+  "muster": {
+    "_doc": "Where the army waits at the start of a campaign (the Old Citadel training posts, then the parade ground).",
+    "pos": [
+      -108,
+      -64
+    ],
+    "radius": 12
+  },
+  "garrison": {
+    "_doc": "Allied guards standing at the kingdom's key positions. They are NOT part of the commander's roster or army: they hold their post (or walk a short beat), defend it and the commander's side against the enemy, and ignore the army-follow order. World [x, z] positions, 'face' = the point a sentry watches. Each post lists the spot first; if it is not valid (blocked, on a road, in a mission space, covered, too close to another guard) the Garrison tries nearby spots. 'max_above' = how far above the terrain a post may stand (bridge decks, the watchtower roof).",
+    "max_health": 120,
+    "aggression": 0.55,
+    "sight_range": 26.0,
+    "min_spacing": 3.0,
+    "edge_margin": 5.0,
+    "road_clearance": 1.0,
+    "mission_clearance": 4.0,
+    "sleep_radius": 170.0,
+    "wake_radius": 140.0,
+    "corpse_seconds": 25.0,
+    "groups": [
+      {
+        "name": "Castle entrance",
+        "max_above": 3.5,
+        "posts": [
+          {
+            "pos": [
+              163,
+              155.2
+            ],
+            "face": [
+              128,
+              159
+            ]
+          },
+          {
+            "pos": [
+              163,
+              162.8
+            ],
+            "face": [
+              128,
+              159
+            ]
+          },
+          {
+            "pos": [
+              186,
+              152.5
+            ],
+            "face": [
+              172,
+              159
+            ]
+          },
+          {
+            "pos": [
+              186,
+              165.5
+            ],
+            "face": [
+              172,
+              159
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Castle approach",
+        "max_above": 1.5,
+        "posts": [
+          {
+            "pos": [
+              136,
+              153
+            ],
+            "face": [
+              100,
+              170
+            ]
+          },
+          {
+            "pos": [
+              136,
+              166
+            ],
+            "face": [
+              100,
+              170
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Castle corners",
+        "max_above": 3.0,
+        "posts": [
+          {
+            "pos": [
+              244.5,
+              125.5
+            ],
+            "face": [
+              260,
+              105
+            ]
+          },
+          {
+            "pos": [
+              244.5,
+              174.5
+            ],
+            "face": [
+              262,
+              196
+            ]
+          },
+          {
+            "pos": [
+              179.5,
+              125.5
+            ],
+            "face": [
+              160,
+              110
+            ]
+          },
+          {
+            "pos": [
+              179.5,
+              174.5
+            ],
+            "face": [
+              160,
+              190
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Watchtower",
+        "max_above": 7.5,
+        "posts": [
+          {
+            "pos": [
+              -198,
+              188
+            ],
+            "y_hint": "site:Watchtower:8.0",
+            "face": [
+              -170,
+              160
+            ]
+          },
+          {
+            "pos": [
+              -198,
+              192
+            ],
+            "y_hint": "site:Watchtower:8.0",
+            "face": [
+              -170,
+              220
+            ]
+          },
+          {
+            "pos": [
+              -195.5,
+              197
+            ],
+            "face": [
+              -190,
+              230
+            ]
+          },
+          {
+            "pos": [
+              -204.5,
+              197
+            ],
+            "face": [
+              -215,
+              230
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Great Gate",
+        "max_above": 1.5,
+        "posts": [
+          {
+            "pos": [
+              -285,
+              61
+            ],
+            "face": [
+              -232,
+              40
+            ]
+          },
+          {
+            "pos": [
+              -285,
+              79
+            ],
+            "face": [
+              -232,
+              100
+            ]
+          },
+          {
+            "pos": [
+              -284,
+              67
+            ],
+            "face": [
+              -232,
+              70
+            ]
+          },
+          {
+            "pos": [
+              -284,
+              73
+            ],
+            "face": [
+              -232,
+              70
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Training ground corners",
+        "max_above": 1.5,
+        "posts": [
+          {
+            "pos": [
+              -140.5,
+              -80.5
+            ],
+            "face": [
+              -160,
+              -60
+            ]
+          },
+          {
+            "pos": [
+              -140.5,
+              -40
+            ],
+            "face": [
+              -160,
+              -60
+            ]
+          },
+          {
+            "pos": [
+              -180,
+              -40
+            ],
+            "face": [
+              -160,
+              -60
+            ]
+          },
+          {
+            "pos": [
+              -180,
+              -80.5
+            ],
+            "face": [
+              -160,
+              -60
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "North Bridge",
+        "max_above": 1.5,
+        "posts": [
+          {
+            "pos": [
+              78,
+              -146.4
+            ],
+            "face": [
+              100,
+              -150
+            ]
+          },
+          {
+            "pos": [
+              122,
+              -153.6
+            ],
+            "face": [
+              100,
+              -150
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Stone Bridge",
+        "max_above": 1.5,
+        "posts": [
+          {
+            "pos": [
+              38.7,
+              165.1
+            ],
+            "face": [
+              58,
+              172
+            ]
+          },
+          {
+            "pos": [
+              77.3,
+              178.9
+            ],
+            "face": [
+              58,
+              172
+            ]
+          }
+        ],
+        "patrol_every": 0
+      },
+      {
+        "name": "Curtain wall",
+        "max_above": 1.5,
+        "generate": "wall_towers",
+        "count": 10,
+        "inset": 8.0,
+        "patrol_every": 0,
+        "patrol_length": 12.0
+      },
+      {
+        "name": "Ashford town guards",
+        "posts": [
+          {
+            "pos": [
+              232,
+              26
+            ],
+            "face": [
+              245,
+              35
+            ]
+          },
+          {
+            "pos": [
+              258,
+              44
+            ],
+            "face": [
+              245,
+              35
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Northmere town guards",
+        "posts": [
+          {
+            "pos": [
+              131,
+              -87
+            ],
+            "face": [
+              144,
+              -78
+            ]
+          },
+          {
+            "pos": [
+              157,
+              -69
+            ],
+            "face": [
+              144,
+              -78
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Southbank town guards",
+        "posts": [
+          {
+            "pos": [
+              67,
+              216
+            ],
+            "face": [
+              80,
+              225
+            ]
+          },
+          {
+            "pos": [
+              93,
+              234
+            ],
+            "face": [
+              80,
+              225
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Westmarch town guards",
+        "posts": [
+          {
+            "pos": [
+              -249,
+              -41
+            ],
+            "face": [
+              -236,
+              -32
+            ]
+          },
+          {
+            "pos": [
+              -223,
+              -23
+            ],
+            "face": [
+              -236,
+              -32
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Southwatch town guards",
+        "posts": [
+          {
+            "pos": [
+              -149,
+              205
+            ],
+            "face": [
+              -136,
+              214
+            ]
+          },
+          {
+            "pos": [
+              -123,
+              223
+            ],
+            "face": [
+              -136,
+              214
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Castle town town guards",
+        "posts": [
+          {
+            "pos": [
+              192,
+              196
+            ],
+            "face": [
+              205,
+              205
+            ]
+          },
+          {
+            "pos": [
+              230,
+              235
+            ],
+            "face": [
+              205,
+              205
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "missions": [
+    {
+      "id": 1,
+      "key": "first_war",
+      "name": "The Commander's First War",
+      "enabled": true,
+      "type": "camp",
+      "reward_soldiers": 0,
+      "area": "A",
+      "enemy_count": 10,
+      "enemy_health": 100,
+      "sight_range": 10.0,
+      "hear_range": 2.5,
+      "ally_stage": [
+        -28,
+        -111
+      ],
+      "commander_stage": [
+        -28,
+        -108
+      ],
+      "objective": "Find and eliminate the ten soldiers in the jungle encampment",
+      "destination": "Jungle encampment",
+      "briefing": [
+        [
+          "King",
+          "Commander, kneel before your king. I entrust you with my four best commandos. Lead them well."
+        ],
+        [
+          "King",
+          "Commander, our scouts have discovered an enemy encampment within our territory. Take your men, find them, and eliminate the entire group. You are the finest warrior this kingdom has."
+        ]
+      ],
+      "report": [
+        [
+          "King",
+          "The encampment is cleared. Well fought, Commander. Your company may return to its posts."
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "key": "spies",
+      "name": "Shadows on the Roads",
+      "enabled": true,
+      "type": "spies",
+      "reward_soldiers": 10,
+      "area": "D",
+      "enemy_count": 20,
+      "kill_target": 10,
+      "enemy_variant": "spy",
+      "enemy_health": 70,
+      "sight_range": 20.0,
+      "alert_radius": 26.0,
+      "objective": "Eliminate the enemy spies",
+      "destination": "The spy routes across the kingdom",
+      "retreat_text": "The spies are fleeing. Let them carry the news home.",
+      "escape_points": [
+        [
+          -262,
+          -205
+        ],
+        [
+          -136,
+          -186
+        ],
+        [
+          24,
+          128
+        ],
+        [
+          64,
+          262
+        ],
+        [
+          236,
+          -228
+        ]
+      ],
+      "briefing": [
+        [
+          "King",
+          "Commander. Good. There is ill news, and it walks our own roads."
+        ],
+        [
+          "King",
+          "Enemy spies move through the kingdom by night: the west wall road, the cave woods, the market lanes."
+        ],
+        [
+          "King",
+          "The watch counts twenty, scattered. They are learning our walls and our numbers."
+        ],
+        [
+          "Commander",
+          "What are your orders, Majesty?",
+          "determined"
+        ],
+        [
+          "King",
+          "Hunt them. Kill ten and the rest will lose their nerve and run. Let them run."
+        ],
+        [
+          "King",
+          "Take your men. Go now, while the dark still hides them."
+        ]
+      ],
+      "report": [
+        [
+          "King",
+          "Ten dead, and the rest fled with nothing. That will keep them blind for a while."
+        ],
+        [
+          "King",
+          "Ten more men will march under you. You have earned them."
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "key": "square",
+      "name": "Steel in the Square",
+      "enabled": true,
+      "type": "battle",
+      "reward_soldiers": 10,
+      "area": "B",
+      "enemy_count": 20,
+      "enemy_health": 100,
+      "trigger_radius": 34.0,
+      "objective": "Defeat the enemy band in Castle Square",
+      "destination": "Castle Square",
+      "_layout_doc": "Fixed spawn layout: squads of [center x, z, count] in loose ranks. Allies stage at ally_stage; the commander restarts at commander_stage on retry.",
+      "squads": [
+        [
+          248,
+          86,
+          5
+        ],
+        [
+          250,
+          100,
+          5
+        ],
+        [
+          240,
+          93,
+          5
+        ],
+        [
+          254,
+          93,
+          5
+        ]
+      ],
+      "ally_stage": [
+        212,
+        94
+      ],
+      "commander_stage": [
+        205,
+        94
+      ],
+      "briefing": [
+        [
+          "King",
+          "The spies were their eyes. Now comes the hand."
+        ],
+        [
+          "King",
+          "A band of twenty slipped in with the market carts. They hold Castle Square, under my own walls."
+        ],
+        [
+          "Commander",
+          "Then they will not hold it long.",
+          "angry"
+        ],
+        [
+          "King",
+          "Clear the square, Commander. Every one of them."
+        ]
+      ],
+      "report": [
+        [
+          "King",
+          "The square is ours again. The town saw it done, and that matters as much as the bodies."
+        ],
+        [
+          "King",
+          "Ten more recruits are yours. Train them hard."
+        ]
+      ]
+    },
+    {
+      "id": 4,
+      "key": "gatefield",
+      "name": "Before the Sealed Gate",
+      "enabled": true,
+      "type": "battle",
+      "reward_soldiers": 10,
+      "area": "C",
+      "enemy_count": 50,
+      "enemy_health": 100,
+      "trigger_radius": 62.0,
+      "objective": "Break the enemy company on the Great Gate Field",
+      "destination": "The Great Gate Field",
+      "squads": [
+        [
+          -262,
+          44,
+          10
+        ],
+        [
+          -266,
+          70,
+          10
+        ],
+        [
+          -262,
+          96,
+          10
+        ],
+        [
+          -250,
+          57,
+          10
+        ],
+        [
+          -250,
+          83,
+          10
+        ]
+      ],
+      "advance_groups": true,
+      "advance_interval": 12.0,
+      "ally_stage": [
+        -196,
+        70
+      ],
+      "commander_stage": [
+        -190,
+        70
+      ],
+      "briefing": [
+        [
+          "King",
+          "Riders came in at dusk. Fifty of the enemy have crossed the mountain passes."
+        ],
+        [
+          "King",
+          "They gather on the Great Gate Field, before the sealed gate, to open it from within."
+        ],
+        [
+          "Commander",
+          "The gate stays shut, Majesty. I will meet them on the field.",
+          "determined"
+        ],
+        [
+          "King",
+          "Your company has grown. Use it. Break them before they reach the gate."
+        ]
+      ],
+      "report": [
+        [
+          "King",
+          "Fifty. And the gate never trembled."
+        ],
+        [
+          "King",
+          "Take ten more men. You will need every one of them for what comes next."
+        ]
+      ]
+    },
+    {
+      "id": 5,
+      "key": "final",
+      "name": "The Gate Holds",
+      "enabled": true,
+      "type": "final",
+      "reward_soldiers": 0,
+      "area": "C",
+      "_doc": "Climactic battle. 'enemy_total' is the whole host; at most 'max_active' fight at once and the rest arrive in the listed waves (a wave starts when the field has thinned to 'when_remaining' or after 'after_seconds'). The captain arrives with the last wave. Tune counts here after performance testing.",
+      "enemy_total": 100,
+      "max_active": 40,
+      "enemy_health": 100,
+      "trigger_radius": 62.0,
+      "waves": [
+        {
+          "count": 30,
+          "when_remaining": -1,
+          "after_seconds": 0
+        },
+        {
+          "count": 35,
+          "when_remaining": 10,
+          "after_seconds": 120
+        },
+        {
+          "count": 35,
+          "when_remaining": 12,
+          "after_seconds": 150,
+          "captain": true
+        }
+      ],
+      "captain_health": 400,
+      "wave_spawns": [
+        [
+          -268,
+          40
+        ],
+        [
+          -270,
+          62
+        ],
+        [
+          -270,
+          84
+        ],
+        [
+          -266,
+          104
+        ],
+        [
+          -256,
+          30
+        ],
+        [
+          -256,
+          112
+        ]
+      ],
+      "ally_stage": [
+        -196,
+        70
+      ],
+      "commander_stage": [
+        -190,
+        70
+      ],
+      "objective": "Hold the Great Gate Field against the enemy host",
+      "captain_objective": "Their captain has taken the field. Bring him down",
+      "destination": "The Great Gate Field",
+      "victory_text": "The enemy host breaks. The gate holds.",
+      "briefing": [
+        [
+          "King",
+          "This is the host we feared. A hundred men, coming down on the Great Gate."
+        ],
+        [
+          "King",
+          "If the gate falls, the town falls with it."
+        ],
+        [
+          "Commander",
+          "It will not fall.",
+          "determined"
+        ],
+        [
+          "King",
+          "They will come in waves. Their captain leads the last of them himself."
+        ],
+        [
+          "King",
+          "Hold the field, break every wave, and bring him down. Go, Commander. The kingdom stands behind you."
+        ]
+      ],
+      "report": [
+        [
+          "King",
+          "The gate holds. I watched from the wall and could not count them all."
+        ],
+        [
+          "King",
+          "Whatever comes after this, Commander, they will remember who stood on that field."
+        ]
+      ]
+    }
+  ]
+}

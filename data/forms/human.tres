@@ -1,23 +1,15 @@
-[gd_resource type="Resource" script_class="FormDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="FormDefinition" format=3 uid="uid://cryuwmc138uo3"]
 
-[ext_resource type="Script" path="res://scripts/combat/form_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://besm0fwnf18kl" path="res://scripts/combat/form_definition.gd" id="1"]
 [ext_resource type="Resource" path="res://data/abilities/sword_strike.tres" id="2"]
 [ext_resource type="Resource" path="res://data/abilities/dodge.tres" id="3"]
-[ext_resource type="Resource" path="res://data/abilities/ward.tres" id="4"]
+[ext_resource type="Resource" uid="uid://dk7befctyy5ue" path="res://data/abilities/ward.tres" id="4"]
+[ext_resource type="Resource" path="res://data/abilities/sword_finisher.tres" id="5"]
 
 [resource]
 script = ExtResource("1")
 id = "human"
 display_name = "Human"
-max_health = 100
-walk_speed = 4.6
-sprint_speed = 7.4
-jump_velocity = 5.6
-stand_height = 1.8
-stand_eye = 1.62
-capsule_radius = 0.35
-can_crouch = true
-max_stamina = 100.0
-sprint_drain = 22.0
+sprint_speed = 8.2
 stamina_regen = 20.0
-abilities = [ExtResource("2"), ExtResource("3"), ExtResource("4")]
+abilities = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")]

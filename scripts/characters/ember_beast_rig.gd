@@ -281,11 +281,26 @@ func _pose(_delta: float) -> void:
 			_add_x("chest", 0.3 * (1.0 - t))
 			_add_x("head", 0.2 * (1.0 - t))
 	match _hold:
-		"heavy_windup":
+		"heavy_windup", "flame_windup":
 			var w := hold_p()
 			_add_x("arm_l", 2.6 * w); _add_x("arm_r", 2.6 * w)
 			_add_x("chest", 0.35 * w)
 			_add_x("head", -0.2 * w)
+			if _hold == "flame_windup":
+				_add_x("head", 0.22 * w)
+				_add_x("jaw", 0.55 * w)
+				p["body"].position.y -= 0.12 * w
+		"flame_breath":
+			var w := hold_p()
+			_add_x("chest", -0.24 * w)
+			_add_x("head", 0.32 * w)
+			_add_x("jaw", 0.72 * w)
+			_add_x("arm_l", 0.24 * w); _add_x("arm_r", 0.24 * w)
+		"flame_recover":
+			var w := bell(t)
+			_add_x("head", -0.12 * w)
+			_add_x("jaw", 0.22 * w)
+			_add_x("chest", 0.14 * w)
 		"pounce_windup":
 			var w := hold_p()
 			p["body"].position.y -= 0.25 * w

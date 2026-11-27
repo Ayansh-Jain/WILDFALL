@@ -1,6 +1,6 @@
 class_name CombatKit
 extends RefCounted
-## Helpers for Phase 2 tests: a flat arena on the East Meadow, controllable
+## Helpers for Phase 2 tests: a flat arena on the North Meadow, controllable
 ## dummies (bots with their brain switched off), walls, and clean resets.
 
 var t
@@ -17,7 +17,7 @@ func _init(runner) -> void:
 	main = runner.main
 	world = runner.world
 	local = main.player
-	var res := SpawnValidator.find(world, Vector2(248, 40), NAN, 10.0, {"max_slope_deg": 8.0})
+	var res := SpawnValidator.find(world, Vector2(150, -62), NAN, 10.0, {"max_slope_deg": 8.0})
 	center = res["position"]
 
 

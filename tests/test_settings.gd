@@ -14,6 +14,9 @@ func run(t) -> void:
 			t.check(false, "default binding for %s" % action)
 	t.check(Settings.get_binding_text("interact") == "E", "interact defaults to E", Settings.get_binding_text("interact"))
 	t.check(Settings.get_binding_text("move_forward") == "W", "move forward defaults to W")
+	t.check(Settings.get_binding_text("special_attack") == "Z" and Settings.get_binding_text("ability_2") == "R",
+		"the finisher has a dedicated key and keeps R for Ward")
+	t.check(Settings.get_binding_text("toggle_lamp") == "L", "the portable lamp has a dedicated L binding")
 
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_F
@@ -74,7 +77,7 @@ func run(t) -> void:
 	Settings.set_value("mouse_sensitivity", old_sens)
 
 	var drv := PlayerDriver.new(player)
-	var meadow := SpawnValidator.find(t.world, Vector2(248, 40), NAN, 10.0, {"max_slope_deg": 8.0})
+	var meadow := SpawnValidator.find(t.world, Vector2(150, -62), NAN, 10.0, {"max_slope_deg": 8.0})
 	var bob_on := await _bob_range(drv, player, meadow["position"], true)
 	var bob_off := await _bob_range(drv, player, meadow["position"], false)
 	t.check(bob_on > 0.02 and bob_on < 0.12, "head bob is subtle when enabled", "%.3f m" % bob_on)

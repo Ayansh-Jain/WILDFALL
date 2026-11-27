@@ -150,7 +150,7 @@ func _box(center: Vector3, size: Vector3) -> StaticBody3D:
 ## A flat, open, dry spot (the west clearing) with nothing around it.
 func _flat_spot(w: World) -> Vector3:
 	for c in w.layout.list("clearings"):
-		if c["name"] == "East Meadow":
+		if c["name"] == "North Meadow":
 			var p := WorldLayout.v2(c["center"])
 			var res := SpawnValidator.find(w, p, NAN, 10.0, {"max_slope_deg": 8.0})
 			if res["ok"]:

@@ -38,11 +38,16 @@ static func get_mesh(prop: String) -> Mesh:
 			"bush": mesh = FoliageMeshes.bush(_variant(base), detail)
 			"fern": mesh = FoliageMeshes.fern()
 			"grass": mesh = FoliageMeshes.grass()
+			"grass_tall": mesh = FoliageMeshes.grass_tall()
 			"reeds": mesh = _build_reeds(prop)
 			"rock": mesh = _build_rock(base)
 			"pebble": mesh = _build_rock("rock1")
 			"log": mesh = _build_log(prop)
 			"mushrooms": mesh = _build_mushrooms(prop)
+			"flower": mesh = _build_flower(prop)
+			"rush": mesh = _build_rush(prop)
+			"mosspatch": mesh = _build_moss_patch(prop)
+			"branch": mesh = _build_branch(prop)
 			_: push_error("PropMeshes: unknown prop '%s'" % prop)
 		_cache[prop] = mesh
 	return _cache[prop]
@@ -171,19 +176,29 @@ static func _build_reeds(_p: String) -> Mesh:
 	return k.to_mesh(FOLIAGE_MAT)
 
 
-## Boulders: jittered icospheres with moss on upward faces.
+## Stratified angular cliff boulders with mossy upward shelves.
 static func _build_rock(p: String) -> Mesh:
 	var v := _variant(p)
-	var k := MeshKit.new(40 + v, 0.07)
-	var scale: Vector3 = [Vector3(1.0, 0.7, 0.85), Vector3(1.2, 0.6, 1.0), Vector3(0.8, 0.9, 0.8), Vector3(1.3, 0.5, 0.9)][v % 4]
+	var k := MeshKit.new(40 + v, 0.08)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 400 + v * 17
+	var scale: Vector3 = [Vector3(1.15, 0.68, 0.90), Vector3(1.35, 0.56, 1.05), Vector3(0.88, 1.05, 0.85), Vector3(1.42, 0.48, 0.96)][v % 4]
 	var tmp := MeshKit.new(40 + v)
-	tmp.add_blob(Transform3D(Basis.IDENTITY.scaled(scale), Vector3(0, 0.35, 0)), 1.0, ROCK, v % 2 == 0, 0.28)
+	tmp.add_blob(Transform3D(Basis.IDENTITY.scaled(scale), Vector3(0, 0.34, 0)), 1.0, ROCK, true, 0.34)
+	# Add a smaller fractured shoulder outcrop on larger rock variants.
+	if v % 2 == 1:
+		var off := Vector3(rng.randf_range(0.55, 0.85), 0.14, rng.randf_range(-0.35, 0.35))
+		tmp.add_blob(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(scale * 0.58), off), 0.9, ROCK, false, 0.32)
 	for i in range(0, tmp.verts.size(), 3):
 		var a := tmp.verts[i]
 		var b := tmp.verts[i + 2]
 		var c := tmp.verts[i + 1]
+		# Subtle terrace flattening for natural sedimentary rock look.
+		a.y = lerpf(a.y, snappedf(a.y, 0.24), 0.25)
+		b.y = lerpf(b.y, snappedf(b.y, 0.24), 0.25)
+		c.y = lerpf(c.y, snappedf(c.y, 0.24), 0.25)
 		var nrm := (b - a).cross(c - a).normalized()
-		var col := ROCK.lerp(MOSS, smoothstep(0.55, 0.9, nrm.y) * 0.8)
+		var col := ROCK.lerp(MOSS, smoothstep(0.58, 0.92, nrm.y) * 0.85)
 		k.add_tri(a, b, c, col)
 	k.smooth_normals()
 	var mesh := k.to_mesh(ROCK_MAT)
@@ -210,6 +225,91 @@ static func _build_mushrooms(_p: String) -> Mesh:
 		k.add_cylinder(Transform3D(Basis.IDENTITY, p), 0.025, 0.02, h, 4, Color(0.5, 0.6, 0.6))
 		k.add_cylinder(Transform3D(Basis.IDENTITY, p + Vector3(0, h, 0)), rng.randf_range(0.06, 0.12), 0.0, 0.07, 6, Color(1, 1, 1))
 	return k.to_mesh(GLOW_MAT)
+
+
+static func _basis_y(dir: Vector3) -> Basis:
+	var y := dir.normalized()
+	var ref := Vector3.FORWARD if absf(y.z) < 0.9 else Vector3.RIGHT
+	var x := y.cross(ref).normalized()
+	return Basis(x, y, x.cross(y))
+
+
+## Riverbank and meadow flowers: a clump of stems, leaves and small blossoms.
+## 0 white umbels, 1 blue, 2 buttercup yellow, 3 purple loosestrife spikes, 4 deep red.
+static func _build_flower(p: String) -> Mesh:
+	var v := _variant(p) % 5
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 700 + v
+	var k := MeshKit.new(700 + v, 0.12)
+	var petal: Color = [Color(0.86, 0.85, 0.78), Color(0.27, 0.33, 0.68), Color(0.86, 0.66, 0.1), Color(0.52, 0.2, 0.48), Color(0.5, 0.08, 0.07)][v]
+	var heart: Color = [Color(0.78, 0.74, 0.42), Color(0.8, 0.76, 0.46), Color(0.58, 0.42, 0.08), Color(0.36, 0.13, 0.32), Color(0.1, 0.07, 0.05)][v]
+	var stem := Color(0.15, 0.26, 0.1)
+	var count: int = [7, 6, 9, 4, 4][v]
+	var hr: Vector2 = [Vector2(0.35, 0.6), Vector2(0.22, 0.42), Vector2(0.14, 0.28), Vector2(0.7, 1.1), Vector2(0.4, 0.62)][v]
+	for i in count:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(0.02, 0.3)
+		var base := Vector3(cos(a) * r, 0, sin(a) * r)
+		var h := rng.randf_range(hr.x, hr.y)
+		var tip := base + Vector3(rng.randf_range(-0.07, 0.07), h, rng.randf_range(-0.07, 0.07))
+		k.add_cylinder(Transform3D(_basis_y(tip - base), base), 0.011, 0.006, (tip - base).length(), 3, stem, 0.0, 1.0, false)
+		for j in 2:
+			var la := a + float(j) * PI + rng.randf_range(-0.5, 0.5)
+			var lp := base + Vector3(cos(la), 0, sin(la)) * 0.12 + Vector3(0, h * 0.25, 0)
+			var side := Vector3(-sin(la), 0, cos(la)) * 0.025
+			k.add_tri(base - side, base + side, lp, stem * 1.15, 0.0, 0.0, 0.5)
+			k.add_tri(base + side, base - side, lp, stem * 1.15, 0.0, 0.0, 0.5)
+		if v == 3:
+			for j in 7:
+				var sp := base.lerp(tip, 0.55 + float(j) * 0.065)
+				k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(0.022, 0.03, 0.022) * (1.0 - float(j) * 0.08)), sp), 1.0, petal * rng.randf_range(0.85, 1.1), false, 0.0, 0.9)
+		elif v == 0:
+			for j in 5:
+				var fa := TAU * float(j) / 5.0
+				var fp := tip + Vector3(cos(fa) * 0.035, -0.01, sin(fa) * 0.035)
+				k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(0.022, 0.01, 0.022)), fp), 1.0, petal, false, 0.0, 1.0)
+		else:
+			var pr: float = [0.0, 0.035, 0.028, 0.0, 0.05][v]
+			var cup: float = [0.0, 0.25, 0.55, 0.0, 0.45][v]
+			for j in 5:
+				var pa := TAU * float(j) / 5.0 + rng.randf() * 0.3
+				var e1 := Vector3(cos(pa - 0.38), cup, sin(pa - 0.38)).normalized() * pr
+				var e2 := Vector3(cos(pa + 0.38), cup, sin(pa + 0.38)).normalized() * pr
+				k.add_tri(tip, tip + e1, tip + e2, petal, 1.0, 1.0, 1.0)
+				k.add_tri(tip, tip + e2, tip + e1, petal * 0.85, 1.0, 1.0, 1.0)
+			k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * pr * 0.32), tip + Vector3(0, 0.005, 0)), 1.0, heart, false, 0.0, 1.0)
+	return k.to_mesh(FOLIAGE_MAT)
+
+
+## Soft rush: a dense clump of thin, slightly arching stems with brown tufts.
+static func _build_rush(_p: String) -> Mesh:
+	var k := MeshKit.new(720, 0.12)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 720
+	for i in 16:
+		var p := Vector3(rng.randf_range(-0.18, 0.18), 0, rng.randf_range(-0.18, 0.18))
+		var dir := Vector3(p.x * 1.6 + rng.randf_range(-0.15, 0.15), 1.0, p.z * 1.6 + rng.randf_range(-0.15, 0.15))
+		var h := rng.randf_range(0.55, 1.0)
+		k.add_cylinder(Transform3D(_basis_y(dir), p), 0.012, 0.004, h, 3, Color(0.2, 0.29, 0.13) * rng.randf_range(0.85, 1.15), 0.0, 1.0, false)
+		if i % 4 == 0:
+			k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(0.02, 0.04, 0.02)), p + dir.normalized() * h * 0.82), 1.0, Color(0.32, 0.22, 0.12), false, 0.0, 0.85)
+	return k.to_mesh(FOLIAGE_MAT)
+
+
+static func _build_moss_patch(_p: String) -> Mesh:
+	var k := MeshKit.new(730, 0.15)
+	k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(0.6, 0.05, 0.45)), Vector3(0, 0.0, 0)), 1.0, Color(0.15, 0.24, 0.09), true, 0.3)
+	k.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(0.35, 0.05, 0.3)), Vector3(0.4, 0.0, 0.25)), 1.0, Color(0.18, 0.27, 0.1), false, 0.3)
+	return k.to_mesh(FOLIAGE_MAT)
+
+
+static func _build_branch(_p: String) -> Mesh:
+	var k := MeshKit.new(740, 0.08)
+	var col := Color(0.62, 0.56, 0.5)
+	k.add_cylinder(Transform3D(Basis(Vector3.FORWARD, PI * 0.5), Vector3(0.8, 0.05, 0)), 0.05, 0.025, 1.6, 5, col)
+	k.add_cylinder(Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis(Vector3.RIGHT, 0.6), Vector3(0.2, 0.05, 0.02)), 0.025, 0.008, 0.5, 4, col)
+	k.add_cylinder(Transform3D(Basis(Vector3.FORWARD, -PI * 0.5) * Basis(Vector3.RIGHT, -0.5), Vector3(-0.3, 0.05, 0)), 0.02, 0.006, 0.4, 4, col)
+	return k.to_mesh(BARK_MAT)
 
 
 static func rock_hull(prop: String, scale: float) -> PackedVector3Array:

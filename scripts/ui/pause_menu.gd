@@ -4,6 +4,8 @@ extends CanvasLayer
 ## and key rebinding. Pauses the tree while open.
 
 var main: Node  ## Set by Main; used for "Unstuck".
+## Set before adding to the tree: the menu of a visited scene (see DevVisit).
+var visiting := false
 
 var _root: Control
 var _listening_action := ""
@@ -126,16 +128,75 @@ func _game_tab() -> Control:
 	vb.name = "Game"
 	vb.add_theme_constant_override("separation", 10)
 	vb.add_child(_button("Resume", close))
+	if visiting:
+		vb.add_child(_button("Return to the kingdom", func() -> void: DevVisit.go_home(get_tree())))
+		vb.add_child(_button("Quit to desktop", func() -> void: get_tree().quit()))
+		return vb
+	vb.add_child(_button("World map", func() -> void:
+		close()
+		if main and main.get("world_map"):
+			main.world_map.open()))
+	var saves := HBoxContainer.new()
+	saves.add_theme_constant_override("separation", 10)
+	for entry in [["Save game", _save_game], ["Load last save", _load_game]]:
+		var b := _button(entry[0], entry[1])
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		saves.add_child(b)
+	vb.add_child(saves)
 	vb.add_child(_button("Unstuck (return to nearest spawn)", func() -> void:
 		close()
 		if main:
 			main.respawn_nearest()))
-	vb.add_child(_button("Quit to desktop", func() -> void: get_tree().quit()))
+	vb.add_child(_button("Restart the campaign (erases mission progress)", func() -> void:
+		close()
+		if main and main.get("campaign"):
+			main.campaign.restart_campaign()))
+	for id in DevVisit.available():
+		var visit := _button("Visit: " + DevVisit.DESTINATIONS[id][0], _visit.bind(id))
+		visit.tooltip_text = "Not available during a battle."
+		vb.add_child(visit)
+	vb.add_child(_button("Quit to desktop", func() -> void:
+		if main and main.has_method("save_on_exit"):
+			close()
+			main.save_on_exit()
+		get_tree().quit()))
 	var hint := Label.new()
-	hint.text = "WASD move   Mouse look   Space jump   Shift sprint\nCtrl/C crouch   E interact   F3 debug overlay"
+	hint.text = "WASD move   Mouse look   Space jump   Shift sprint\nCtrl/C crouch   E interact   T call / dismiss army   Tab map   V follow the wind   F3 debug overlay"
 	hint.add_theme_color_override("font_color", Color(0.6, 0.68, 0.65))
 	vb.add_child(hint)
 	return vb
+
+
+func _save_game() -> void:
+	close()
+	if main and main.get("exploration"):
+		main.hud.toast(main.exploration.save_game(), 3.0)
+
+
+## Reloads the kingdom from the last save (progress since then is lost).
+func _load_game() -> void:
+	close()
+	if not Persist.active:
+		return
+	DevVisit.go_home(get_tree())
+
+
+## Leaving mid-battle would abandon it, so visits wait until it is over.
+func _visit(id: String) -> void:
+	if main == null:
+		return
+	var campaign: CampaignDirector = main.get("campaign")
+	if campaign:
+		if campaign.in_encounter():
+			var hud := get_tree().get_first_node_in_group("hud")
+			close()
+			if hud:
+				hud.toast("Finish the battle first.", 2.5)
+			return
+		# Wounds and losses go into the save before the world is dropped (no free healing).
+		campaign.army.sync_to_state()
+		campaign.save()
+	DevVisit.go(get_tree(), id, main.get("player"))
 
 
 func _settings_tab() -> Control:
@@ -149,6 +210,9 @@ func _settings_tab() -> Control:
 	_slider_row(grid, "Master volume (dB)", -40.0, 6.0, 1.0, Settings.master_volume_db, "master_volume_db")
 	_check_row(grid, "Invert mouse Y", Settings.invert_y, "invert_y")
 	_check_row(grid, "Head bob", Settings.head_bob, "head_bob")
+	_slider_row(grid, "Camera distance", 0.7, 1.4, 0.05, Settings.camera_distance, "camera_distance")
+	_slider_row(grid, "Camera shake", 0.0, 1.0, 0.1, Settings.camera_shake, "camera_shake")
+	_check_row(grid, "Reduce motion", Settings.reduce_motion, "reduce_motion")
 	return grid
 
 

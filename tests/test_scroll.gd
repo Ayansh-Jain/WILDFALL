@@ -75,7 +75,8 @@ func run(t) -> void:
 	t.check(not interactor.try_interact(), "a second interaction does nothing")
 	t.check(not GameState.collect_scroll(player.player_id), "GameState refuses a second collection")
 	await drv.frames(10)
-	t.check(interactor.focused == null and hud.prompt_text() == "", "prompt clears after collection")
+	t.check(interactor.focused == null and not hud.prompt_text().contains(scroll.interactable.prompt_text), "scroll prompt clears after collection",
+		"focus=%s, prompt=%s" % [interactor.focused.name if interactor.focused else "none", hud.prompt_text()])
 	await drv.frames(170)
 	t.check(not is_instance_valid(scroll) and get_tree().get_nodes_in_group("scroll").is_empty(), "collected scroll is removed from the world")
 

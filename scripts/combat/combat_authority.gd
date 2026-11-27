@@ -1,4 +1,8 @@
 extends Node
+
+var sword_balance: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/combat_balance.json"))
+
+const MOUNTED_SWORD_STRIKE := preload("res://data/abilities/mounted_sword_strike.tres")
 ## Combat authority (autoload "Combat").
 ##
 ## Owns every rule: ability validation, cooldowns, wind-ups, hit validation,
@@ -11,6 +15,7 @@ extends Node
 
 signal ability_started(actor_id: int, ability_id: String, windup: float)
 signal ability_resolved(actor_id: int, ability_id: String, hit_ids: Array)
+signal ability_phase(actor_id: int, ability_id: String, phase: String, duration: float)
 signal ability_interrupted(actor_id: int, ability_id: String)
 ## Local feedback only (why a request failed).
 signal ability_rejected(actor_id: int, action: String, reason: String)
@@ -21,6 +26,7 @@ signal attack_dodged(target_id: int, source_id: int, ability_id: String)
 ## Server-side event: UI must only show the public parts.
 signal player_defeated(event: Dictionary)
 signal player_respawned(player_id: int)
+signal health_restored(player_id: int, amount: int)
 ## Visible to everyone: the beast form is public once revealed.
 signal transform_started(actor_id: int, monster_id: String, duration: float)
 signal reverted_to_human(actor_id: int)
@@ -40,8 +46,21 @@ signal roar_heard(actor_id: int, position: Vector3, radius: float)
 ## (player_id, avoid_position) -> Vector3. Set by Main; falls back to staying put.
 var respawn_point_provider: Callable
 
+## Respawn modes: AUTO (the default: back after defeat_duration + respawn_delay),
+## HOLD (stays down until revive(): the campaign owns the commander's death during an
+## encounter) and NEVER (soldiers: the dead stay dead).
+enum Respawn { AUTO, HOLD, NEVER }
+
+var swords = preload("res://scripts/combat/sword_combat.gd").new(self)
+
 var _clock := 0.0
 var _actors := {}  ## id -> ActorData
+## id -> team name. Actors on the same non-empty team never harm each other; an actor
+## without a team (wanderers, hunters, tests) is hostile to everyone, as before.
+var _teams := {}
+var logical_actors := {}
+var enemy_director: Node
+var _respawn_modes := {}
 
 
 class ActorData:
@@ -81,7 +100,12 @@ func register(avatar: PlayerController) -> void:
 
 
 func unregister(id: int) -> void:
+	swords.remove(id)
+	if is_instance_valid(enemy_director):
+		enemy_director.members.erase(id)
 	_actors.erase(id)
+	_teams.erase(id)
+	_respawn_modes.erase(id)
 
 
 func avatar(id: int) -> PlayerController:
@@ -91,6 +115,70 @@ func avatar(id: int) -> PlayerController:
 
 func actor_ids() -> Array:
 	return _actors.keys()
+
+
+# --- teams and respawn --------------------------------------------------------------------
+
+func set_team(id: int, team: String) -> void:
+	if team == "":
+		_teams.erase(id)
+	else:
+		_teams[id] = team
+
+
+func team_of(id: int) -> String:
+	return _teams.get(id, "")
+
+
+## Whether `a` may harm `b`: different teams, or either has no team.
+func are_hostile(a: int, b: int) -> bool:
+	if a == b:
+		return false
+	var ta: String = _teams.get(a, "")
+	return ta == "" or ta != _teams.get(b, "")
+
+
+func set_respawn_mode(id: int, mode: int) -> void:
+	if mode == Respawn.AUTO:
+		_respawn_modes.erase(id)
+	else:
+		_respawn_modes[id] = mode
+
+
+func respawn_mode(id: int) -> int:
+	return _respawn_modes.get(id, Respawn.AUTO)
+
+
+## Brings a defeated (or living) actor back at once at `pos`, with full health and
+## no cooldowns: the campaign's retry / quit, never ordinary play.
+func revive(id: int, pos: Vector3, yaw := NAN) -> bool:
+	swords.cancel(id, "revive")
+	if swords.actors.has(id):
+		swords.actors[id].ready = 0.0
+		swords.actors[id].cooldowns.clear()
+	var d: ActorData = _actors.get(id)
+	if d == null:
+		return false
+	var state := GameState.get_state(id)
+	if state == PlayerState.State.DEFEATED:
+		GameState.transition(id, PlayerState.State.RESPAWNING, "revive")
+		state = PlayerState.State.RESPAWNING
+	d.avatar.teleport(pos + Vector3.UP * 0.1, yaw)
+	if state == PlayerState.State.RESPAWNING:
+		GameState.transition(id, PlayerState.State.MONSTER_HIDDEN if GameState.has_monster(id) else PlayerState.State.HUMAN, "revived")
+	d.pending = {}
+	d.busy_until = 0.0
+	d.defeated_at = -INF
+	d.respawning_at = -INF
+	_apply_form(id)
+	d.combatant.reset_status()
+	d.combatant.set_health(d.combatant.max_health)
+	d.charges.clear()
+	d.cooldowns.clear()
+	if d.avatar.is_defeated:
+		d.avatar.on_respawned()
+	player_respawned.emit(id)
+	return true
 
 
 # --- queries (UI, bots, tests) -----------------------------------------------------------
@@ -110,11 +198,15 @@ func charges_left(id: int, ability: AbilityDefinition) -> int:
 
 
 func is_busy(id: int) -> bool:
+	if swords.attacks.has(id):
+		return true
 	var d: ActorData = _actors.get(id)
 	return d != null and (not d.pending.is_empty() or _clock < d.busy_until)
 
 
 func pending_ability(id: int) -> String:
+	if swords.attacks.has(id):
+		return swords.attacks[id].definition.id
 	var d: ActorData = _actors.get(id)
 	if d == null or d.pending.is_empty():
 		return ""
@@ -157,6 +249,8 @@ func transform_status(id: int) -> Dictionary:
 # --- requests ----------------------------------------------------------------------------
 
 func request_action(id: int, action: String) -> Dictionary:
+	if swords.actors.has(id) and GameState.current_form(id).id == "human":
+		return swords.request(id, action)
 	var form := GameState.current_form(id)
 	var ability := form.ability_for_action(action)
 	if ability == null:
@@ -165,26 +259,44 @@ func request_action(id: int, action: String) -> Dictionary:
 
 
 func request_ability(id: int, ability_id: String) -> Dictionary:
-	var d: ActorData = _actors.get(id)
-	if d == null:
-		return {"ok": false, "reason": "unknown player"}
 	var ability := GameState.current_form(id).ability(ability_id)
 	if ability == null:
 		return _reject(id, ability_id, "not available in this form")
+	return _request_ability(id, ability)
+
+
+## One mounted sword cut uses the existing melee resolver, with its own wider side arc.
+func request_mounted_attack(id: int) -> Dictionary:
+	var d: ActorData = _actors.get(id)
+	if d == null:
+		return {"ok": false, "reason": "unknown player"}
+	if not d.avatar.riding:
+		return _reject(id, "mounted_sword_strike", "not mounted")
+	if GameState.current_form(id).id != "human":
+		return _reject(id, "mounted_sword_strike", "not available in this form")
+	return _request_ability(id, MOUNTED_SWORD_STRIKE)
+
+
+func _request_ability(id: int, ability: AbilityDefinition) -> Dictionary:
+	var d: ActorData = _actors.get(id)
+	if d == null:
+		return {"ok": false, "reason": "unknown player"}
+	if d.avatar.is_local and not d.avatar.controls_enabled:
+		return _reject(id, ability.id, "controls locked")
 	if not PlayerState.is_alive_state(GameState.get_state(id)) or not d.combatant.is_alive():
-		return _reject(id, ability_id, "defeated")
+		return _reject(id, ability.id, "defeated")
 	if d.combatant.is_stunned():
-		return _reject(id, ability_id, "stunned")
+		return _reject(id, ability.id, "stunned")
 	if _clock < d.transforming_until:
-		return _reject(id, ability_id, "transforming")
+		return _reject(id, ability.id, "transforming")
 	if is_busy(id):
-		return _reject(id, ability_id, "busy")
+		return _reject(id, ability.id, "busy")
 	if _clock < d.cooldowns.get(ability.id, 0.0):
-		return _reject(id, ability_id, "cooldown")
+		return _reject(id, ability.id, "cooldown")
 	if ability.charges >= 0 and d.charges.get(ability.id, ability.charges) <= 0:
-		return _reject(id, ability_id, "no charges")
+		return _reject(id, ability.id, "no charges")
 	if ability.stamina_cost > 0.0 and not d.avatar.spend_stamina(ability.stamina_cost):
-		return _reject(id, ability_id, "stamina")
+		return _reject(id, ability.id, "stamina")
 
 	d.cooldowns[ability.id] = _clock + ability.cooldown
 	if ability.charges >= 0:
@@ -200,6 +312,9 @@ func request_ability(id: int, ability_id: String) -> Dictionary:
 			ability_started.emit(id, ability.id, 0.0)
 			d.busy_until = _clock + ability.recovery
 			_resolve_ward(id, ability)
+		AbilityDefinition.Kind.FLAME:
+			d.pending = {"ability": ability, "resolve_at": _clock + ability.windup, "phase": "windup", "damage_taken": 0}
+			ability_started.emit(id, ability.id, ability.windup)
 		_:
 			d.pending = {"ability": ability, "resolve_at": _clock + ability.windup, "phase": "windup", "damage_taken": 0}
 			ability_started.emit(id, ability.id, ability.windup)
@@ -256,7 +371,8 @@ func _reject(id: int, action: String, reason: String) -> Dictionary:
 # --- simulation ----------------------------------------------------------------------------
 
 func _physics_process(delta: float) -> void:
-	_clock += delta
+	_clock += maxf(delta, 0.0)
+	swords.tick()
 	for id in _actors.keys():
 		var d: ActorData = _actors.get(id)
 		if d == null or not is_instance_valid(d.avatar):
@@ -293,7 +409,33 @@ func _tick_pending(id: int, d: ActorData) -> void:
 				d.avatar.start_leap(ab.move_distance, ab.leap_height)
 				d.pending["phase"] = "air"
 				d.pending["air_since"] = _clock
-	elif d.pending["phase"] == "air":
+			AbilityDefinition.Kind.FLAME:
+				d.pending["phase"] = "flame"
+				d.pending["flame_until"] = _clock + ab.flame_duration
+				d.pending["next_tick"] = _clock
+				d.pending["hit_ids"] = []
+				ability_phase.emit(id, ab.id, "active", ab.flame_duration)
+	if not d.pending.is_empty() and d.pending["phase"] == "flame":
+		if _clock >= float(d.pending["flame_until"]):
+			var hits: Array = d.pending["hit_ids"]
+			d.pending = {}
+			d.busy_until = _clock + ab.recovery
+			ability_phase.emit(id, ab.id, "recovery", ab.recovery)
+			ability_resolved.emit(id, ab.id, hits)
+			return
+		if _clock >= float(d.pending["next_tick"]):
+			for tid in _flame_targets(id, ab):
+				var td: ActorData = _actors.get(tid)
+				if td == null or td.combatant.is_invulnerable():
+					if td != null and td.combatant.is_invulnerable():
+						attack_dodged.emit(tid, id, ab.id)
+					continue
+				var hits: Array = d.pending["hit_ids"]
+				if not hits.has(tid):
+					hits.append(tid)
+				apply_damage(tid, ab.damage, id, ab.id)
+			d.pending["next_tick"] = _clock + maxf(ab.damage_interval, 0.1)
+	elif not d.pending.is_empty() and d.pending["phase"] == "air":
 		var air: float = _clock - d.pending["air_since"]
 		if (air > 0.15 and d.avatar.is_on_floor()) or air > 1.6:
 			d.pending = {}
@@ -302,8 +444,16 @@ func _tick_pending(id: int, d: ActorData) -> void:
 			ability_resolved.emit(id, ab.id, hits)
 
 
+func _flame_targets(id: int, ab: AbilityDefinition) -> Array:
+	# The same forward cone and world-only LOS query as melee, sampled at a
+	# controlled cadence while the flame is active.
+	return _melee_targets(id, ab)
+
+
 func _tick_lifecycle(id: int, d: ActorData) -> void:
 	var state := GameState.get_state(id)
+	if state == PlayerState.State.DEFEATED and _respawn_modes.has(id):
+		return  # HOLD / NEVER: someone else decides (revive) or nobody does.
 	if state == PlayerState.State.DEFEATED and _clock >= d.defeated_at + defeat_duration:
 		GameState.transition(id, PlayerState.State.RESPAWNING, "respawn")
 		d.respawning_at = _clock
@@ -334,7 +484,7 @@ func _chest(av: PlayerController) -> Vector3:
 func _alive_targets(attacker_id: int) -> Array:
 	var out := []
 	for id in _actors:
-		if id == attacker_id:
+		if id == attacker_id or not are_hostile(attacker_id, id):
 			continue
 		if not PlayerState.is_alive_state(GameState.get_state(id)):
 			continue
@@ -350,6 +500,10 @@ func _melee_targets(id: int, ab: AbilityDefinition) -> Array:
 	var a: PlayerController = _actors[id].avatar
 	var origin := _chest(a)
 	var fwd := -a.global_transform.basis.z
+	if a.riding:
+		var rider := a.get_node_or_null("Rider") as Rider
+		if rider and rider.horse:
+			fwd = rider.horse.forward()
 	var fwd2 := Vector2(fwd.x, fwd.z).normalized()
 	var space := a.get_world_3d().direct_space_state
 	var found := []
@@ -360,7 +514,7 @@ func _melee_targets(id: int, ab: AbilityDefinition) -> Array:
 		var dist := flat.length() - b.capsule.radius
 		if dist > ab.hit_range or absf(tc.y - origin.y) > max_vertical_reach:
 			continue
-		if flat.length() > 0.3 and rad_to_deg(fwd2.angle_to(flat.normalized())) > ab.arc_degrees * 0.5:
+		if flat.length() > 0.3 and absf(rad_to_deg(fwd2.angle_to(flat.normalized()))) > ab.arc_degrees * 0.5:
 			continue
 		if not LineOfSight.is_clear(space, origin, tc, [a.get_rid(), b.get_rid()], Layers.WORLD):
 			continue
@@ -399,6 +553,8 @@ func _strike(id: int, ab: AbilityDefinition, targets: Array) -> Array:
 		if td.combatant.is_invulnerable():
 			attack_dodged.emit(tid, id, ab.id)
 			continue
+		if swords.defend(tid, id, ab, ab.attack_class):
+			continue
 		hits.append(tid)
 		if ab.stun_on_hit > 0.0:
 			td.combatant.stunned_until = maxf(td.combatant.stunned_until, _clock + ab.stun_on_hit)
@@ -406,7 +562,13 @@ func _strike(id: int, ab: AbilityDefinition, targets: Array) -> Array:
 			var dir := td.avatar.global_position - a.global_position
 			dir.y = 0.0
 			td.avatar.apply_knockback(dir.normalized() * ab.knockback * 3.0)
-		apply_damage(tid, ab.damage, id, ab.id)
+		var damage := ab.damage
+		if ab.id in ["sword_strike", "sword_finisher", "mounted_sword_strike"]:
+			var key := "commander_finisher" if ab.id == "sword_finisher" else "commander_basic"
+			if a.is_bot and a.body_style.begins_with("soldier:"):
+				key = "enemy_basic" if a.body_style.begins_with("soldier:enemy") else "allied_basic"
+			damage = int(sword_balance.get(key, damage))
+		apply_damage(tid, damage, id, ab.id)
 	return hits
 
 
@@ -443,11 +605,24 @@ func _resolve_roar(id: int, ab: AbilityDefinition) -> void:
 
 ## The only way health goes down. Returns damage actually applied.
 func apply_damage(target_id: int, amount: int, source_id: int, ability_id: String) -> int:
+	if logical_actors.has(target_id):
+		return _damage_logical(target_id, amount, source_id, ability_id)
 	var td: ActorData = _actors.get(target_id)
 	if td == null or amount <= 0 or not td.combatant.is_alive():
 		return 0
 	if not PlayerState.is_alive_state(GameState.get_state(target_id)) or td.combatant.is_invulnerable():
 		return 0
+	if td.avatar.get_meta("duel_locked",false):
+		return 0
+	if td.avatar.has_meta("duel_opponent") and source_id != int(td.avatar.get_meta("duel_opponent")):
+		return 0
+	var source: ActorData = _actors.get(source_id)
+	if source and source.avatar.has_meta("duel_opponent") and target_id != int(source.avatar.get_meta("duel_opponent")):
+		return 0
+	if source_id >= 0 and not are_hostile(source_id, target_id):
+		return 0
+	if swords.attacks.has(target_id) and swords.attacks[target_id].definition.interruptible:
+		swords.cancel(target_id, "damage interruption")
 	var c := td.combatant
 	c.set_health(c.health - amount)
 	c.last_combat_time = _clock
@@ -465,7 +640,22 @@ func apply_damage(target_id: int, amount: int, source_id: int, ability_id: Strin
 	return amount
 
 
+func heal_player(target_id: int, amount: int) -> int:
+	var d: ActorData = _actors.get(target_id)
+	if d == null or amount <= 0 or not d.combatant.is_alive():
+		return 0
+	if not PlayerState.is_alive_state(GameState.get_state(target_id)):
+		return 0
+	var before := d.combatant.health
+	d.combatant.set_health(mini(d.combatant.max_health, before + amount))
+	var restored := d.combatant.health - before
+	if restored > 0:
+		health_restored.emit(target_id, restored)
+	return restored
+
+
 func _defeat(victim_id: int, killer_id: int) -> void:
+	swords.cancel(victim_id, "death")
 	var d: ActorData = _actors[victim_id]
 	d.defeat_count += 1
 	d.pending = {}
@@ -511,6 +701,10 @@ func _apply_form(id: int) -> void:
 
 
 func _on_match_reset() -> void:
+	swords.reset()
+	if is_instance_valid(enemy_director):
+		enemy_director.queue_free()
+		enemy_director = null
 	for id in _actors:
 		var d: ActorData = _actors[id]
 		d.pending = {}
@@ -525,3 +719,80 @@ func _on_match_reset() -> void:
 		if d.avatar.is_defeated:
 			d.avatar.on_respawned()
 		reverted_to_human.emit(id)
+
+
+## Additive R02 integration API. Arena enables actors explicitly; legacy forms remain intact.
+func configure_sword_actor(id: int, enemy := false, encounter := "arena", background := false) -> void:
+	cancel_attack(id, "runtime handoff")
+	swords.configure(id, enemy, encounter, background)
+
+func set_guard(id: int, pressed: bool) -> bool:
+	return swords.set_guard(id, pressed)
+
+func cancel_attack(id: int, reason := "external") -> void:
+	swords.cancel(id, reason)
+	var d: ActorData = _actors.get(id)
+	if d != null and not d.pending.is_empty():
+		var ab: AbilityDefinition = d.pending.ability
+		d.pending = {}
+		ability_interrupted.emit(id, ab.id)
+
+func combat_state(id: int) -> Dictionary:
+	if not swords.actors.has(id):
+		return {}
+	var state: Dictionary = swords.actors[id].duplicate(true)
+	state["attack"] = swords.attacks.get(id, {}).duplicate(true)
+	return state
+
+
+## Lightweight battle identities: no CharacterBody or skeleton required.
+func register_logical(id: int, record: Dictionary, team: String) -> void:
+	logical_actors[id] = record
+	set_team(id, team)
+
+func unregister_logical(id: int) -> void:
+	logical_actors.erase(id)
+	_teams.erase(id)
+
+func _damage_logical(id: int, amount: int, source: int, ability: String) -> int:
+	var rec: Dictionary = logical_actors[id]
+	if amount <= 0 or rec.health <= 0 or not are_hostile(source, id) or not swords.alive(source):
+		return 0
+	rec.health = maxi(0, int(rec.health) - amount)
+	damage_dealt.emit({"target": id, "source": source, "amount": amount, "ability": ability, "position": rec.position + Vector3.UP, "health_after": rec.health})
+	return amount
+
+func sword_targets(id: int, ab: AbilityDefinition) -> Array:
+	var targets := _melee_targets(id, ab)
+	var actor := avatar(id)
+	var origin := _chest(actor)
+	var forward := Vector2(actor.forward().x, actor.forward().z).normalized()
+	for tid in logical_actors:
+		var rec: Dictionary = logical_actors[tid]
+		if rec.health <= 0 or not are_hostile(id, tid):
+			continue
+		var chest: Vector3 = rec.position + Vector3.UP
+		var flat := Vector2(chest.x-origin.x,chest.z-origin.z)
+		if flat.length()-0.3 > ab.hit_range or absf(chest.y-origin.y)>max_vertical_reach:
+			continue
+		if flat.length()>0.3 and absf(rad_to_deg(forward.angle_to(flat.normalized())))>ab.arc_degrees*0.5:
+			continue
+		if LineOfSight.is_clear(actor.get_world_3d().direct_space_state,origin,chest,[actor.get_rid()],Layers.WORLD):
+			targets.append(tid)
+	targets.sort_custom(func(a, b) -> bool: return sword_target_position(a).distance_squared_to(origin)<sword_target_position(b).distance_squared_to(origin))
+	return targets.slice(0,ab.max_targets)
+
+func sword_target_position(id: int) -> Vector3:
+	return logical_actors[id].position if logical_actors.has(id) else avatar(id).global_position
+
+
+## Existing campaign brains hand Commander-facing engagement to one bounded scheduler.
+func direct_enemy(actor: PlayerController, encounter_id: String, pattern := "standard") -> void:
+	if not is_instance_valid(enemy_director):
+		enemy_director = preload("res://scripts/combat/combat_director.gd").new()
+		add_child(enemy_director)
+	enemy_director.commander = avatar(GameState.local_player_id)
+	if enemy_director.commander != null and not swords.actors.has(GameState.local_player_id):
+		configure_sword_actor(GameState.local_player_id)
+	if not enemy_director.members.has(actor.player_id):
+		enemy_director.register_enemy(actor, encounter_id, pattern)

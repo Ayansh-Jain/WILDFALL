@@ -14,6 +14,8 @@ const SELF_LAYER := 1 << 19
 var move_speed := 0.0
 var grounded := true
 var crouching := false
+## Story pose to hold ("" = plain idle); each rig maps the names it knows.
+var mood := ""
 ## Cast shadows but stay invisible (the local first-person player's own body).
 var shadow_only := false:
 	set(v):

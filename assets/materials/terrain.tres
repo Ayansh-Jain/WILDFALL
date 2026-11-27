@@ -1,18 +1,19 @@
-[gd_resource type="ShaderMaterial" load_steps=12 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://c2jqsw1ty3i8u"]
 
-[ext_resource type="Shader" path="res://assets/materials/terrain.gdshader" id="1"]
-[ext_resource type="Texture2D" path="res://assets/textures/leafy_grass_diff.jpg" id="2"]
-[ext_resource type="Texture2D" path="res://assets/textures/leafy_grass_nor.jpg" id="3"]
-[ext_resource type="Texture2D" path="res://assets/textures/forest_leaves_02_diff.jpg" id="4"]
-[ext_resource type="Texture2D" path="res://assets/textures/rocky_trail_diff.jpg" id="5"]
-[ext_resource type="Texture2D" path="res://assets/textures/rocky_trail_nor.jpg" id="6"]
-[ext_resource type="Texture2D" path="res://assets/textures/brown_mud_02_diff.jpg" id="7"]
-[ext_resource type="Texture2D" path="res://assets/textures/rock_face_diff.jpg" id="8"]
-[ext_resource type="Texture2D" path="res://assets/textures/rock_face_nor.jpg" id="9"]
-[ext_resource type="Texture2D" path="res://assets/textures/snow_02_diff.jpg" id="10"]
-[ext_resource type="Texture2D" path="res://assets/textures/medieval_blocks_02_diff.jpg" id="11"]
+[ext_resource type="Shader" uid="uid://c8r5as8qvoc04" path="res://assets/materials/terrain.gdshader" id="1"]
+[ext_resource type="Texture2D" uid="uid://8j3m5ojvk72" path="res://assets/textures/leafy_grass_diff.jpg" id="2"]
+[ext_resource type="Texture2D" uid="uid://bmbgoiyuar1oc" path="res://assets/textures/leafy_grass_nor.jpg" id="3"]
+[ext_resource type="Texture2D" uid="uid://dev2cr0ix8v75" path="res://assets/textures/forest_leaves_02_diff.jpg" id="4"]
+[ext_resource type="Texture2D" uid="uid://ccp2mrxuqtdhe" path="res://assets/textures/rocky_trail_diff.jpg" id="5"]
+[ext_resource type="Texture2D" uid="uid://dlbke5wp3m7tc" path="res://assets/textures/rocky_trail_nor.jpg" id="6"]
+[ext_resource type="Texture2D" uid="uid://dljashrnyehfr" path="res://assets/textures/brown_mud_02_diff.jpg" id="7"]
+[ext_resource type="Texture2D" uid="uid://yy6qdvvpkanx" path="res://assets/textures/rock_face_diff.jpg" id="8"]
+[ext_resource type="Texture2D" uid="uid://dp0c2rbbgxito" path="res://assets/textures/rock_face_nor.jpg" id="9"]
+[ext_resource type="Texture2D" uid="uid://bbcxuf83g7uwv" path="res://assets/textures/snow_02_diff.jpg" id="10"]
+[ext_resource type="Texture2D" uid="uid://dg2t3r701gtew" path="res://assets/textures/medieval_blocks_02_diff.jpg" id="11"]
 
 [resource]
+render_priority = 0
 shader = ExtResource("1")
 shader_parameter/grass_tex = ExtResource("2")
 shader_parameter/grass_nrm = ExtResource("3")
@@ -24,3 +25,15 @@ shader_parameter/rock_tex = ExtResource("8")
 shader_parameter/rock_nrm = ExtResource("9")
 shader_parameter/snow_tex = ExtResource("10")
 shader_parameter/paving_tex = ExtResource("11")
+shader_parameter/grass_tint = Color(0.46, 0.62, 0.35, 1)
+shader_parameter/meadow_gold_tint = Color(0.76, 0.66, 0.34, 1)
+shader_parameter/forest_tint = Color(0.54, 0.51, 0.42, 1)
+shader_parameter/rock_tint = Color(0.60, 0.63, 0.68, 1)
+shader_parameter/moss_tint = Color(0.28, 0.38, 0.18, 1)
+shader_parameter/grass_scale = 0.24
+shader_parameter/trail_scale = 0.32
+shader_parameter/rock_scale = 0.085
+shader_parameter/snow_height = 68.0
+shader_parameter/brightness = 0.92
+shader_parameter/water_level = 0.0
+shader_parameter/underwater = Color(0.04, 0.11, 0.12, 1)

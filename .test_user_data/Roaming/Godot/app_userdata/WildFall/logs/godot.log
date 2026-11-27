@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[GameState] world_seed=1337 scroll_seed=20240 dev_mode=true
+
+=== test_contract_c14.gd ===
+  PASS  C-14 apply('golden_day') succeeds
+  PASS  C-14 current() == 'golden_day'  (golden_day)
+  PASS  C-14 apply('atmospheric_evening') succeeds
+  PASS  C-14 current() == 'atmospheric_evening'  (atmospheric_evening)
+  PASS  C-14 apply('moonlit_night') succeeds
+  PASS  C-14 current() == 'moonlit_night'  (moonlit_night)
+  PASS  C-14 apply('misty_valley') succeeds
+  PASS  C-14 current() == 'misty_valley'  (misty_valley)
+  PASS  C-14 profile_applied emitted for each applied profile  (4)
+  PASS  C-14 unknown profile fails cleanly without crash  ({ "ok": false, "reason": "unknown_profile", "data": { "id": "nonexistent_profile_xyz" } })
+  PASS  C-14 wind vector reflects set_wind()  ((1.5, 0.0, 0.0))
+
+=== test_contract_c13.gd ===
+  PASS  C-13 showcase publishes wf_marker nodes  (12)
+  PASS  C-13 all marker_ids are non-empty and unique
+  PASS  C-13 all marker kinds are in contract vocabulary  (0)
+  PASS  C-13 all markers are grounded on terrain  (0)
+  PASS  showcase terrain collision matches height_at()  (worst=0.000 m)
+  PASS  showcase stone bridge deck has solid collision above river  ((34.0, 4.609821, 16.0))
+
+[R01-AG tests] 17 passed, 0 failed

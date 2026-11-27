@@ -1,0 +1,71 @@
+{
+ "clips": {
+  "concern": {
+   "frames": 76,
+   "loop": true
+  },
+  "idle": {
+   "frames": 76,
+   "loop": true
+  },
+  "idle_talk": {
+   "frames": 89,
+   "loop": true
+  },
+  "interact": {
+   "frames": 61,
+   "loop": false
+  },
+  "lean_rail": {
+   "frames": 76,
+   "loop": true
+  },
+  "listen": {
+   "frames": 76,
+   "loop": true
+  },
+  "moon_gaze": {
+   "frames": 76,
+   "loop": true
+  },
+  "nod_yes": {
+   "frames": 76,
+   "loop": false
+  },
+  "shake_no": {
+   "frames": 76,
+   "loop": false
+  },
+  "sit_enter": {
+   "frames": 40,
+   "loop": false
+  },
+  "sit_exit": {
+   "frames": 32,
+   "loop": false
+  },
+  "sit_idle": {
+   "frames": 51,
+   "loop": true
+  },
+  "sit_talk": {
+   "frames": 89,
+   "loop": true
+  },
+  "turn_step": {
+   "frames": 28,
+   "loop": false
+  },
+  "walk": {
+   "frames": 41,
+   "loop": true,
+   "speed": 0.668
+  },
+  "walk_casual": {
+   "frames": 41,
+   "loop": true,
+   "speed": 0.719
+  }
+ },
+ "fps": 30
+}

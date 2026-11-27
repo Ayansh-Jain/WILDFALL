@@ -27,6 +27,19 @@ var site_heights := {}   ## site name -> flattened ground height
 var step_ms := {}        ## generation step -> milliseconds (for profiling)
 var cave := {}           ## Parsed cave grid, see _parse_cave()
 
+## Kingdom boundary (layout "kingdom"): the curtain wall replaces the edge
+## mountains everywhere except the northern mountain sector around the waterfall.
+var wall_points := PackedVector2Array()
+## Signed metres from the wall's centre line: < 0 inside the kingdom, > 0 outside.
+## Exact within WALL_BAND of the wall; +-WALL_FAR beyond it.
+var wall_dist := PackedFloat32Array()
+var _mountain_from := -56.0
+var _mountain_to := 52.0
+var _mountain_blend := 10.0
+var _flat_zones: Array = []
+const WALL_BAND := 110.0
+const WALL_FAR := 400.0
+
 var _nb := FastNoiseLite.new()
 var _nd := FastNoiseLite.new()
 var _nr := FastNoiseLite.new()
@@ -56,8 +69,8 @@ func generate(p_layout: WorldLayout, seed_value: int) -> void:
 	holes.resize((n - 1) * (n - 1))
 	holes.fill(0)
 
-	for step in [_stamp_trails, _base_heights, _smooth_trails, _flatten_sites, _flatten_bridge_ends,
-			_carve_water, _protect_trails, _parse_cave, _shape_cave, _paint_forest]:
+	for step in [_stamp_trails, _kingdom_bounds, _base_heights, _smooth_trails, _flatten_sites, _flatten_bridge_ends,
+			_carve_water, _protect_trails, _parse_cave, _shape_cave, _shape_castle_lift, _paint_forest, _grade_roads]:
 		var t0 := Time.get_ticks_usec()
 		step.call()
 		step_ms[step.get_method()] = (Time.get_ticks_usec() - t0) / 1000
@@ -112,8 +125,56 @@ func is_water_at(x: float, z: float) -> bool:
 	return height_at(x, z) < water_level + 0.05
 
 
+## Inside the kingdom: within the curtain wall (at least `margin` metres from its
+## centre line) or, in the northern mountain sector, inside the old mountain rim.
 func in_playable(x: float, z: float, margin := 0.0) -> bool:
-	return _edge_metric(x, z) < layout.playable_half - margin
+	if wall_points.is_empty() or mountain_weight(x, z) >= 0.5:
+		return _edge_metric(x, z) < layout.playable_half - margin
+	return wall_distance(x, z) < -margin
+
+
+## 1 inside the northern mountain sector (bearing measured from north, through
+## east), fading to 0 over the blend angle; 0 where the wall forms the boundary.
+func mountain_weight(x: float, z: float) -> float:
+	if wall_points.is_empty():
+		return 1.0
+	var bearing := rad_to_deg(atan2(x, -z))
+	var w_in := smoothstep(_mountain_from - _mountain_blend, _mountain_from, bearing)
+	var w_out := 1.0 - smoothstep(_mountain_to, _mountain_to + _mountain_blend, bearing)
+	return w_in * w_out
+
+
+## Signed distance to the wall centre line (bilinear on the vertex grid).
+func wall_distance(x: float, z: float) -> float:
+	if wall_dist.is_empty():
+		return -WALL_FAR
+	var fx := clampf((x - origin) / cell, 0.0, n - 1.001)
+	var fz := clampf((z - origin) / cell, 0.0, n - 1.001)
+	var i := int(fx)
+	var j := int(fz)
+	var u := fx - i
+	var v := fz - j
+	var a := lerpf(wall_dist[idx(i, j)], wall_dist[idx(i + 1, j)], u)
+	var b := lerpf(wall_dist[idx(i, j + 1)], wall_dist[idx(i + 1, j + 1)], u)
+	return lerpf(a, b, v)
+
+
+## Exact signed distance from a point to the wall polyline (slow; for planners).
+func wall_distance_exact(p: Vector2) -> float:
+	var d := INF
+	for s in wall_points.size() - 1:
+		d = minf(d, seg_dist(p, wall_points[s], wall_points[s + 1]))
+	return -d if Geometry2D.is_point_in_polygon(p, _wall_polygon()) else d
+
+
+## The wall polyline closed far to the north, so the mountain sector counts as inside.
+func _wall_polygon() -> PackedVector2Array:
+	var poly := wall_points.duplicate()
+	var last := wall_points[wall_points.size() - 1]
+	var first := wall_points[0]
+	poly.append(Vector2(last.x * 1.6, -layout.half_size * 1.6))
+	poly.append(Vector2(first.x * 1.6, -layout.half_size * 1.6))
+	return poly
 
 
 func region_name(x: float, z: float) -> String:
@@ -188,6 +249,64 @@ func _stamp_trails() -> void:
 				var d := seg_dist(Vector2(x, z), a, b) - hw
 				if d < trail_dist[k]:
 					trail_dist[k] = d)
+	# Cart roads share the trail mask, so the terrain shader gives them the same
+	# compacted-earth surface as the footpaths. Stone paving stays reserved for
+	# bridge decks and settlement hardstandings.
+	for road in layout.list("roads"):
+		var road_points := WorldLayout.points(road["points"])
+		var road_width := float(road["half_width"])
+		for s in road_points.size() - 1:
+			var a := road_points[s]
+			var b := road_points[s + 1]
+			_for_vertices_near_segment(a, b, road_width + 5.0, func(k: int, x: float, z: float) -> void:
+				var d := seg_dist(Vector2(x, z), a, b)
+				var edge := d - road_width
+				if edge < trail_dist[k]:
+					trail_dist[k] = edge)
+
+
+## Reads the kingdom wall and mountain sector, then fills wall_dist: exact
+## signed distances near the wall, a coarse inside/outside value elsewhere.
+func _kingdom_bounds() -> void:
+	var kd := layout.dict("kingdom")
+	if kd.is_empty():
+		return
+	wall_points = WorldLayout.points(kd["wall"]["points"])
+	var ms: Dictionary = kd.get("mountain_sector", {})
+	_mountain_from = float(ms.get("from_deg", _mountain_from))
+	_mountain_to = float(ms.get("to_deg", _mountain_to))
+	_mountain_blend = float(ms.get("blend_deg", _mountain_blend))
+	_flat_zones = kd.get("flat_zones", [])
+	wall_dist.resize(n * n)
+	var poly := _wall_polygon()
+	for j in n:
+		var z := vx(j)
+		for i in n:
+			wall_dist[idx(i, j)] = -WALL_FAR if Geometry2D.is_point_in_polygon(Vector2(vx(i), z), poly) else WALL_FAR
+	_tmp_dist.resize(n * n)
+	_tmp_dist.fill(1e6)
+	for s in wall_points.size() - 1:
+		var a := wall_points[s]
+		var b := wall_points[s + 1]
+		_for_vertices_near_segment(a, b, WALL_BAND, func(k: int, x: float, z: float) -> void:
+			var d := seg_dist(Vector2(x, z), a, b)
+			if d < _tmp_dist[k]:
+				_tmp_dist[k] = d)
+	for k in n * n:
+		if _tmp_dist[k] < WALL_BAND:
+			wall_dist[k] = _tmp_dist[k] * signf(wall_dist[k])
+
+
+## 0..1: how strongly the settlement flattening applies here.
+func _flatness(x: float, z: float) -> float:
+	var f := 0.0
+	for zone in _flat_zones:
+		var c := WorldLayout.v2(zone["center"])
+		var r := float(zone["radius"])
+		var d := Vector2(x, z).distance_to(c)
+		if d < r + float(zone["blend"]):
+			f = maxf(f, float(zone["strength"]) * (1.0 - smoothstep(r, r + float(zone["blend"]), d)))
+	return f
 
 
 func _base_heights() -> void:
@@ -196,15 +315,18 @@ func _base_heights() -> void:
 	var ridges := layout.list("ridges")
 	var ph := layout.playable_half
 	var span := layout.half_size - ph
+	var walled := not wall_points.is_empty()
 	for j in n:
 		var z := vx(j)
 		for i in n:
 			var x := vx(i)
 			var k := idx(i, j)
 			var on_trail := 1.0 - smoothstep(0.0, 6.0, trail_dist[k])
-			var h := base + _nb.get_noise_2d(x, z) * 4.5
-			h += _nd.get_noise_2d(x, z) * 1.3 * (1.0 - 0.85 * on_trail)
+			var flat := _flatness(x, z) if not _flat_zones.is_empty() else 0.0
+			var h := base + _nb.get_noise_2d(x, z) * 4.5 * (1.0 - 0.6 * flat)
+			h += _nd.get_noise_2d(x, z) * 1.3 * (1.0 - 0.85 * on_trail) * (1.0 - flat)
 			var ridged := (_nr.get_noise_2d(x, z) + 1.0) * 0.5
+			var relief := 0.0
 			for hill in hills:
 				var c := WorldLayout.v2(hill["center"])
 				var r := float(hill["radius"])
@@ -215,7 +337,7 @@ func _base_heights() -> void:
 					var f := 1.0 - d2 / (r * r)
 					f *= f
 					var rocky := float(hill["rocky"]) * (1.0 - on_trail)
-					h += float(hill["height"]) * f * (1.0 + rocky * (ridged - 0.5) * 0.6)
+					relief += float(hill["height"]) * f * (1.0 + rocky * (ridged - 0.5) * 0.6)
 			for ridge in ridges:
 				var r := float(ridge["radius"])
 				var d := seg_dist(Vector2(x, z), WorldLayout.v2(ridge["a"]), WorldLayout.v2(ridge["b"]))
@@ -223,11 +345,21 @@ func _base_heights() -> void:
 					var f := 1.0 - (d * d) / (r * r)
 					f *= f
 					var rocky := float(ridge["rocky"]) * (1.0 - on_trail)
-					h += float(ridge["height"]) * f * (1.0 + rocky * (ridged - 0.4) * 0.8)
+					relief += float(ridge["height"]) * f * (1.0 + rocky * (ridged - 0.4) * 0.8)
+			h += relief * (1.0 - flat)
+			var m := mountain_weight(x, z) if walled else 1.0
 			var e := _edge_metric(x, z)
-			if e > ph:
+			if e > ph and m > 0.0:
 				var t := clampf((e - ph) / span, 0.0, 1.0)
-				h += 85.0 * pow(t, 2.2) + ridged * 26.0 * t
+				var broad := _nb.get_noise_2d(x * 0.45, z * 0.45) * 0.5 + 0.5
+				h += (85.0 * pow(t, 2.2) + (ridged * 15.0 + broad * 16.0) * t) * m
+			if walled and m < 1.0:
+				# Beyond the wall: open wooded hills instead of the old mountain rim.
+				var out := wall_dist[k]
+				if out > 0.0:
+					var broad := _nb.get_noise_2d(x * 0.6 + 400.0, z * 0.6) * 0.5 + 0.5
+					var rise := 15.0 * smoothstep(3.0, 64.0, out) + (broad * 6.0 + ridged * 2.5) * smoothstep(8.0, 48.0, out)
+					h += rise * (1.0 - m)
 			heights[k] = maxf(h, 1.2)
 
 
@@ -249,6 +381,100 @@ func _smooth_trails() -> void:
 			heights[k] = lerpf(src[k], avg, 0.85 * (1.0 - smoothstep(0.0, 5.0, trail_dist[k])))
 
 
+## Cut the cart roads into a gentle, terrain-following grade after all landmark,
+## water, and cave shaping is complete. The road shoulder blends back into the
+## surrounding land; designated fords keep a narrow, shallow road crossing.
+func _grade_roads() -> void:
+	const MAX_GRADE := 0.18 # about a 10 degree running slope
+	const SHOULDER := 8.0
+	if layout.list("roads").is_empty():
+		return
+	var ford_centers: Array[Vector2] = []
+	var ford_radii: Array[float] = []
+	for ford in layout.list("fords"):
+		ford_centers.append(WorldLayout.v2(ford["center"]))
+		ford_radii.append(float(ford["radius"]))
+	for pass_index in 2:
+		var target_sum := PackedFloat32Array()
+		target_sum.resize(n * n)
+		var target_weight := PackedFloat32Array()
+		target_weight.resize(n * n)
+		for road in layout.list("roads"):
+			var road_points := WorldLayout.points(road["points"])
+			var path: Array[Vector2] = []
+			for segment in road_points.size() - 1:
+				var a := road_points[segment]
+				var b := road_points[segment + 1]
+				var length := a.distance_to(b)
+				var steps := maxi(1, int(ceil(length / (cell * 0.75))))
+				for step_i in range(0 if segment == 0 else 1, steps + 1):
+					path.append(a.lerp(b, float(step_i) / float(steps)))
+			if path.size() < 2:
+				continue
+			var profile: Array[float] = []
+			for p in path:
+				var ford_crossing := false
+				for ford_index in ford_centers.size():
+					if p.distance_to(ford_centers[ford_index]) <= ford_radii[ford_index]:
+						ford_crossing = true
+						break
+				profile.append(water_level - 0.14 if ford_crossing else height_at(p.x, p.y))
+			var end_target := profile[profile.size() - 1]
+			for i in range(1, path.size()):
+				var max_delta := MAX_GRADE * path[i - 1].distance_to(path[i])
+				profile[i] = clampf(profile[i], profile[i - 1] - max_delta, profile[i - 1] + max_delta)
+			# Re-anchor the far end before the reverse pass so a sharp ford edge
+			# cannot be hidden by the forward clamp.
+			profile[profile.size() - 1] = end_target
+			var reverse_i := path.size() - 2
+			while reverse_i >= 0:
+				var i := reverse_i
+				var max_delta := MAX_GRADE * path[i].distance_to(path[i + 1])
+				profile[i] = clampf(profile[i], profile[i + 1] - max_delta, profile[i + 1] + max_delta)
+				reverse_i -= 1
+			var half_width := float(road["half_width"])
+			for i in path.size() - 1:
+				var a := path[i]
+				var b := path[i + 1]
+				var segment_vector := b - a
+				var segment_length_squared := segment_vector.length_squared()
+				if segment_length_squared < 0.001:
+					continue
+				var ford_crossing := false
+				for ford_index in ford_centers.size():
+					if (a + b).distance_to(ford_centers[ford_index] * 2.0) <= ford_radii[ford_index] * 2.0:
+						ford_crossing = true
+						break
+				var shoulder := 3.0 if ford_crossing else SHOULDER
+				_for_vertices_near_segment(a, b, half_width + shoulder, func(k: int, x: float, z: float) -> void:
+					var vertex := Vector2(x, z)
+					var ford_cell := false
+					for ford_index in ford_centers.size():
+						if vertex.distance_to(ford_centers[ford_index]) <= ford_radii[ford_index]:
+							ford_cell = true
+							break
+					if heights[k] <= water_level + 0.35 and not ford_cell:
+						return
+					var distance := seg_dist(vertex, a, b)
+					var influence := 1.0 if distance <= half_width else 1.0 - smoothstep(half_width, half_width + shoulder, distance)
+					if influence <= 0.001:
+						return
+					var along := clampf((vertex - a).dot(segment_vector) / segment_length_squared, 0.0, 1.0)
+					var target := lerpf(profile[i], profile[i + 1], along)
+					target_sum[k] += target * influence
+					target_weight[k] += influence)
+		for k in n * n:
+			if target_weight[k] <= 0.001:
+				continue
+			var road_height := target_sum[k] / target_weight[k]
+			var point := Vector2(vx(k % n), vx(k / n))
+			for ford_index in ford_centers.size():
+				if point.distance_to(ford_centers[ford_index]) <= minf(1.5, ford_radii[ford_index] * 0.15):
+					road_height = minf(road_height, water_level - 0.14)
+					break
+			heights[k] = lerpf(heights[k], road_height, clampf(target_weight[k], 0.0, 1.0))
+
+
 func _flatten_circle(center: Vector2, radius: float, blend: float, target: float, paving_amount := 0.0) -> void:
 	var r_out := radius + blend
 	_for_vertices_near_segment(center, center, r_out, func(k: int, x: float, z: float) -> void:
@@ -262,15 +488,25 @@ func _flatten_circle(center: Vector2, radius: float, blend: float, target: float
 
 
 func _flatten_sites() -> void:
-	const PAVED := {"citadel": 1.0, "castle": 1.0, "chapel": 0.9, "landmark": 0.0, "watchtower": 0.6, "hut": 0.0, "camp": 0.0, "summit": 0.0}
+	const PAVED := {"citadel": 1.0, "castle": 1.0, "chapel": 0.9, "landmark": 0.0, "watchtower": 0.6, "hut": 0.0, "camp": 0.0, "summit": 0.0, "village": 0.0,
+		"square": 0.85, "field": 0.0, "parade": 0.0}
 	for s in layout.list("sites"):
 		var c := WorldLayout.v2(s["center"])
 		var r := float(s["radius"])
 		if r <= 0.0:
 			continue
 		var target := _avg_height(c, r * 0.6) + float(s.get("height_offset", 0.0))
+		# A square at the castle's foot shares the castle's level so the two meet flush.
+		if s.has("height_site") and site_heights.has(s["height_site"]):
+			target = float(site_heights[s["height_site"]]) + float(s.get("height_offset", 0.0))
 		site_heights[s["name"]] = target
 		_flatten_circle(c, r, float(s["blend"]), target, PAVED.get(s["type"], 0.0))
+		if s["type"] == "village":
+			# A worn cobbled square around the well; lanes come from the trails.
+			_flatten_circle(c + Vector2(3.0, -1.5), 8.5, 0.0, target, 0.75)
+		elif s["type"] == "hamlet" and r > 0.0:
+			# Small shared hardstanding, leaving the surrounding village ground open.
+			_flatten_circle(c, 5.5, 0.0, target, 0.72)
 
 
 func _flatten_bridge_ends() -> void:
@@ -385,6 +621,11 @@ func _protect_trails() -> void:
 		crossings.append([WorldLayout.v2(sh["a"]), 8.0])
 		crossings.append([WorldLayout.v2(sh["b"]), 8.0])
 		crossings.append([(WorldLayout.v2(sh["a"]) + WorldLayout.v2(sh["b"])) * 0.5, 30.0])
+	# A cart road over a bridge must not raise the riverbed beneath its deck.
+	for bridge in layout.list("bridges"):
+		var a := WorldLayout.v2(bridge["a"])
+		var b := WorldLayout.v2(bridge["b"])
+		crossings.append([(a + b) * 0.5, a.distance_to(b) * 0.5 + float(bridge["width"]) * 0.5 + 3.0])
 	for k in n * n:
 		if trail_dist[k] > 1.0 or heights[k] > water_level + 0.5:
 			continue
@@ -500,6 +741,26 @@ func _shape_cave() -> void:
 					holes[j * (n - 1) + i] = 1
 
 
+## Leaves a narrow vertical throat through the terrain for the castle's hoist.
+## The stone shaft and travelling cage are built by Sites after the terrain.
+func _shape_castle_lift() -> void:
+	for site in layout.list("sites"):
+		if site.get("type", "") != "castle" or not site.has("lift"):
+			continue
+		var center := WorldLayout.v2(site["center"])
+		var lift: Vector2 = center + WorldLayout.v2(site["lift"])
+		var i0 := clampi(int(floor((lift.x - 2.2 - origin) / cell)), 0, n - 2)
+		var i1 := clampi(int(ceil((lift.x + 2.2 - origin) / cell)), 0, n - 2)
+		var j0 := clampi(int(floor((lift.y - 2.2 - origin) / cell)), 0, n - 2)
+		var j1 := clampi(int(ceil((lift.y + 2.2 - origin) / cell)), 0, n - 2)
+		for j in range(j0, j1 + 1):
+			for i in range(i0, i1 + 1):
+				var p := Vector2(vx(i) + cell * 0.5, vx(j) + cell * 0.5)
+				if p.distance_to(lift) <= 2.15:
+					holes[j * (n - 1) + i] = 1
+		return
+
+
 func _paint_forest() -> void:
 	var base := float(layout.data.get("base_forest_density", 0.2))
 	forest.fill(base)
@@ -526,6 +787,24 @@ func _paint_forest() -> void:
 			var dist := Vector2(x, z).distance_to(c)
 			if dist < r + fade:
 				forest[k] = forest[k] * smoothstep(r, r + fade, dist))
+	# Woods on the open hills beyond the curtain wall.
+	if not wall_dist.is_empty():
+		for k in n * n:
+			if wall_dist[k] > 9.0:
+				var x := vx(k % n)
+				var z := vx(k / n)
+				if mountain_weight(x, z) < 0.5:
+					forest[k] = maxf(forest[k], 0.34 * smoothstep(9.0, 22.0, wall_dist[k]))
+	# Settled ground keeps only scattered trees; the countryside keeps its woods.
+	for zone in layout.dict("kingdom").get("settled_zones", []):
+		var c := WorldLayout.v2(zone["center"])
+		var r := float(zone["radius"])
+		var fade := float(zone.get("fade", 20.0))
+		var keep := float(zone.get("keep", 0.15))
+		_for_vertices_near_segment(c, c, r + fade, func(k: int, x: float, z: float) -> void:
+			var dist := Vector2(x, z).distance_to(c)
+			if dist < r + fade:
+				forest[k] = forest[k] * lerpf(keep, 1.0, smoothstep(r, r + fade, dist)))
 	var wl := water_level
 	for j in n:
 		var z := vx(j)

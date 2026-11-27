@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.7088 - Compatibility - Using Device: Intel - Intel(R) Iris(R) Xe Graphics
+
+[GameState] world_seed=1337 scroll_seed=20240 dev_mode=true
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 4926, "terrain_mesh": 587, "sites": 1458, "props": 2281 }  terrain steps: { &"_stamp_trails": 122, &"_kingdom_bounds": 390, &"_base_heights": 2153, &"_smooth_trails": 302, &"_flatten_sites": 30, &"_flatten_bridge_ends": 0, &"_carve_water": 50, &"_protect_trails": 4, &"_parse_cave": 0, &"_shape_cave": 50, &"_shape_castle_lift": 0, &"_paint_forest": 329, &"_grade_roads": 1485 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 0, &"_scatter_trees": 82, &"_scatter_logs": 3, &"_scatter_rocks": 74, &"_scatter_bushes": 75, &"_scatter_clutter": 1204, &"_scatter_riverbank": 640, &"_scatter_flower_patches": 4, &"_emit_multimeshes": 179 }
+[ScrollSpawner] seed 20240 -> marker 'cave_chamber'
+MAIN main_kings_way_day  avg=185.60ms  p95=1652.72ms  p99=4206.85ms  fps=5.4  draws=534
+MAIN main_stone_bridge_evening  avg=246.22ms  p95=28.67ms  p99=7872.79ms  fps=4.1  draws=848
+MAIN main_waterfall_day  avg=14.01ms  p95=21.53ms  p99=38.74ms  fps=71.4  draws=119
+MAIN main_ashford_night  avg=42.89ms  p95=30.28ms  p99=969.66ms  fps=23.3  draws=301
+[showcase_tour] complete -> D:/WildFall/Screenshots/R01_AG_Showcase

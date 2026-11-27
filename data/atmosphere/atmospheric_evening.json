@@ -1,0 +1,56 @@
+{
+	"id": "atmospheric_evening",
+	"label": "Atmospheric Evening",
+	"sun": {
+		"elevation_deg": 10.5,
+		"azimuth_deg": 238.0,
+		"color": [1.0, 0.56, 0.30],
+		"energy": 1.18
+	},
+	"ambient": {
+		"color": [0.36, 0.37, 0.54],
+		"energy": 0.78,
+		"sky_contribution": 0.36
+	},
+	"sky": {
+		"zenith": [0.10, 0.16, 0.36],
+		"horizon": [0.94, 0.46, 0.28],
+		"ground": [0.14, 0.12, 0.15],
+		"celestial": [1.0, 0.65, 0.36],
+		"cloud_dark": [0.16, 0.15, 0.24],
+		"cloud_lit": [0.98, 0.58, 0.36],
+		"cloud_cover": 0.62,
+		"cloud_speed": 0.0024,
+		"star_amount": 0.04,
+		"daylight_factor": 0.55,
+		"sun_glow": 1.25
+	},
+	"fog": {
+		"enabled": true,
+		"color": [0.68, 0.44, 0.37],
+		"energy": 0.88,
+		"density": 0.00058,
+		"sky_affect": 0.18,
+		"aerial_perspective": 0.22,
+		"height": 3.0,
+		"height_density": 0.0032
+	},
+	"grading": {
+		"exposure": 1.02,
+		"saturation": 1.06,
+		"contrast": 1.12,
+		"glow_intensity": 0.45,
+		"glow_threshold": 1.05
+	},
+	"water": {
+		"shallow": [0.05, 0.15, 0.17],
+		"deep": [0.02, 0.06, 0.10]
+	},
+	"wind": {
+		"direction": [0.90, 0.43],
+		"strength": 1.15,
+		"speed": 1.45,
+		"gust": 0.48
+	},
+	"night_lamps": 0.85
+}

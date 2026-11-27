@@ -16,6 +16,8 @@ func validate_markers(world: World) -> void:
 	candidates.clear()
 	rejected.clear()
 	for m in world.layout.list("scroll_spawns"):
+		if String(m.get("name","")) != "cave_chamber":
+			continue
 		var xz := WorldLayout.v2(m["pos"])
 		var from_y := world.resolve_y_hint(m.get("y_hint", ""))
 		var res := SpawnValidator.find(world, xz, from_y, 4.0, {"max_slope_deg": 26.0, "min_above_water": 0.5})

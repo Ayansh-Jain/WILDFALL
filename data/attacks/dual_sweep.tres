@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AbilityDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ability_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "dual_sweep"
+animation_id = "sword_heavy"
+sword = "both"
+windup = 0.35
+active_duration = 0.1
+recovery = 0.55
+damage = 100
+hit_range = 2.7
+arc_degrees = 115.0
+max_targets = 2
+interruptible = true
+interrupt_damage = 1
+cooldown = 7.0

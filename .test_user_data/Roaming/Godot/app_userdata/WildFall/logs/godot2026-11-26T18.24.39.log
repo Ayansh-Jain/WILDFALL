@@ -1,0 +1,186 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[GameState] world_seed=1337 scroll_seed=20240 dev_mode=true
+[Kingdom] wall pieces 194, towers 30, houses 82, stalls 22, graves 30, plan rejections 293
+[World] generated: { "terrain_data": 3985, "terrain_mesh": 525, "sites": 1369, "props": 2092 }  terrain steps: { &"_stamp_trails": 101, &"_kingdom_bounds": 321, &"_base_heights": 1690, &"_smooth_trails": 274, &"_flatten_sites": 29, &"_flatten_bridge_ends": 0, &"_carve_water": 52, &"_protect_trails": 5, &"_parse_cave": 0, &"_shape_cave": 47, &"_shape_castle_lift": 0, &"_paint_forest": 230, &"_grade_roads": 1227 }
+[World] props: { "oak": 378, "pine": 578, "birch": 187, "fir": 86, "dead_tree": 103, "log": 18, "rock2": 127, "rock1": 112, "rock3": 112, "rock0": 142, "bush2": 369, "bush1": 385, "bush0": 376, "fern": 2104, "pebble": 4581, "grass_tall": 5401, "grass": 24214, "reeds": 601, "mushrooms": 4, "flower0": 827, "flower2": 519, "rush": 407, "flower1": 435, "mosspatch": 77, "flower3": 407, "flower4": 228, "branch": 101 }  steps: { &"_collect_exclusions": 0, &"_scatter_trees": 83, &"_scatter_logs": 3, &"_scatter_rocks": 72, &"_scatter_bushes": 74, &"_scatter_clutter": 1137, &"_scatter_riverbank": 628, &"_scatter_flower_patches": 7, &"_emit_multimeshes": 72 }
+[ScrollSpawner] seed 20240 -> marker 'cave_chamber'
+[tests] world ready in 11077 ms
+
+=== test_upgrade_world ===
+  PASS  every authored cave entrance has a rockfall seal  (3)
+  PASS  rockfall blocks its entrance collision ray
+  PASS  rockfall blocks its entrance collision ray
+  PASS  rockfall blocks its entrance collision ray
+  PASS  single original scroll remains inside preserved cave
+  PASS  stone bridge approach is grounded
+  PASS  horse physically crosses stone bridge without bypassing collision  ((69.43774, 2.75339, 178.5374))
+
+=== test_terrain ===
+  PASS  terrain grid is 341x341 vertices (680 m at 2 m)  (341)
+  PASS  terrain data generates in under 8 s  (3985 ms)
+  PASS  downward rays always hit terrain collision  (0 misses)
+  PASS  collision height matches height_at() within 5 cm  (worst 0.000 m)
+  PASS  lake bed is well below water level  (-4.50)
+  PASS  north river is swimmable-deep at the bridge  (-2.60)
+  PASS  Old Ford is shallow wadeable water  (-0.45)
+  PASS  Reed Ford is shallow wadeable water  (-0.14)
+  PASS  lake island rises above the water
+  PASS  no below-water terrain outside rivers/lake  (0 samples)
+  PASS  cave mouths cut holes into the terrain  (11 cells)
+  PASS  terrain roof sits above the cave chamber  (18.3 vs floor 9.0)
+  PASS  north map edge is mountainous  (67.9 m)
+
+=== test_spawns ===
+  PASS  all 11 player spawn markers resolve to valid ground  (11 valid)
+  PASS  at least 10 player spawns for 8-10 players
+  PASS  spawns are far from the central landmark  (closest 257 m)
+  PASS  spawns are on dry land  (lowest 2.7 m above water)
+  PASS  spawns are spread around the map  (closest pair 90 m)
+  PASS  spawns are inside the playable area
+  PASS  no deep water right next to any spawn
+  PASS  every designated scroll marker validates  ([])
+  FAIL  12 scroll candidates  (1)
+  PASS  no scroll marker is underwater or at the waterline
+  PASS  no scroll marker is inside geometry
+  PASS  cave scroll marker sits on the cave floor  (9.00 vs 9.00)
+  PASS  same scroll seed gives the same marker  (cave_chamber)
+  FAIL  different seeds use many different markers  (1 distinct)
+  PASS  exactly one scroll exists in the match
+
+=== test_kingdom ===
+  PASS  the kingdom plan was built
+  PASS  curtain wall is built in pieces along its whole length  (194 pieces)
+  PASS  the wall holds about three quarters of the boundary, the mountains the rest  (wall 67% of bearings, 1578 m of wall)
+  PASS  wall towers stand along the circuit  (30 towers)
+  PASS  the wall is substantial (height and thickness)  (11.0 m high, 4.2 m thick)
+  PASS  the waterfall's mountain range remains in the north  (67.9 m)
+  PASS  no edge mountains inside the wall on the walled sides
+  PASS  beyond the wall the land is open hills, not the old mountain rim
+  PASS  the river leaves through a grated water gate  (1)
+  PASS  every player spawn is inside the kingdom
+  PASS  no gaps through the wall, gate or water gate (rays every 3 m at 4 heights)  (2142 probes, 0 gaps [])
+  PASS  the wall ends are sealed into the mountain range  (0 gaps)
+  PASS  the town is expanded with reused house archetypes  (82 houses, 22 stalls)
+  PASS  a mixture of house types is used  ({ "house_tall": 15, "townhouse": 15, "smithy": 4, "cottage_stone": 10, "townhouse_wide": 7, "workshop": 13, "cottage_thatch": 6, "longhouse": 3, "cottage_plank": 5, "granary": 4 })
+  PASS  no two buildings intersect  (0 overlaps)
+  PASS  every house sits on the terrain (no floating foundations, not sunk)  (floating 0, sunk 0)
+  PASS  no road or trail passes through a building  (0 footprint samples on roads)
+  PASS  houses keep clear of the curtain wall  (0 samples within 8 m)
+  PASS  no house stands inside a mission fighting space  (0)
+  PASS  no house stands inside a protected landmark zone  (0)
+  PASS  at least 20 m between the cemetery fence and any house  (0 footprint samples closer)
+  PASS  no house blocks a bridge or ford
+  PASS  every door has a clear apron to stand on  (0 blocked)
+  PASS  every house is solid (no entry, no roof access)  (0 without collision)
+  PASS  four mission spaces are reserved  (["A", "B", "C", "D"])
+  PASS  mission A (Cave Outskirts) has room for 10 combatants  (616 m2, 62 m2 each)
+  PASS  mission A fighting space is open, walkable ground  (100.0% of 62 points clear )
+  PASS  mission B (Castle Square) has room for 40 combatants  (1344 m2, 34 m2 each)
+  PASS  mission B fighting space is open, walkable ground  (100.0% of 135 points clear )
+  PASS  mission C (Great Gate Field) has room for 100 combatants  (6082 m2, 61 m2 each)
+  PASS  mission C fighting space is open, walkable ground  (100.0% of 660 points clear )
+  PASS  the town square and the outer battlefield are separate spaces
+  PASS  the 100-person battlefield lies directly in front of the great gate  (64 m from the gate)
+  PASS  the battlefield is ringed by houses  (21 houses in 8 of 8 sectors)
+  PASS  20 spy spawn points are valid (ground, dry, unblocked, outside landmarks)  (20/20)
+  PASS  spy patrol routes are spread across the kingdom  (5 routes, nearest 205 m apart)
+  PASS  about 30 cross grave markers stand around the Elder Tree  (30)
+  PASS  graves lie inside the fence, clear of the tree's dais and statues
+  PASS  the crosses are distinct designs  (6 designs)
+  PASS  the fence opens onto every path that reaches the tree  (6 gates)
+  PASS  the memorial stone carries the inscription  (In memory of those who gave their lives for this kingdom. Their courage guards the peace we inherit.)
+  PASS  the inscription is legible from a few metres  (0.14 m line height)
+  PASS  the inscription can be read from the path (nothing in front of it)
+  PASS  flowers are planted in clusters around graves  (28 clusters)
+  PASS  no houses within 20 m of the cemetery
+  PASS  soldier positions are marked at the training ground's corners for Phase 3  (4)
+  PASS  each soldier post has room to stand  (4/4)
+  PASS  no houses crowd the training ground
+  PASS  no tree grows inside a house  (1332 trees checked)
+  PASS  the inhabited town keeps only scattered trees  (mean forest density 0.011)
+  PASS  nothing near the great gate can be interacted with
+  PASS  the great gate stays closed: walking (and jumping) at it does not pass  (stopped at x -293.5 (wall face -293.9))
+  PASS  the gate is still sealed after pressing interact beside it
+  PASS  walking (and swimming) at the wall never gets outside the kingdom  ([])
+  PASS  main road walkable end to end: King's Way  (358 m in 44 s)
+  PASS  main road walkable end to end: Castle Road  (72 m in 9 s)
+  PASS  main road walkable end to end: Castle Square Road  (96 m in 12 s)
+  PASS  main road walkable end to end: South Street  (145 m in 18 s)
+  PASS  main road walkable end to end: Cemetery Road  (103 m in 13 s)
+  PASS  main road walkable end to end: Training Road  (141 m in 18 s)
+  PASS  cemetery: road -> main gate -> memorial stone -> tree dais
+  PASS  training ground: road -> east gate -> drill yard
+  PASS  cave outskirts clearing -> cave south mouth
+  PASS  castle square -> Ashford well
+  PASS  great gate field -> King's Way east
+
+=== test_p06_movement ===
+  PASS  P06: found a flat spot for the lab origin
+  PASS  P06: the hold-to-walk action exists
+  PASS  P06: running starts with a short ramp, not instantly  (1.05 m/s after 3 ticks)
+  PASS  P06: reaches 90%% of run speed in 0.1-0.4 s  (12 ticks)
+  PASS  P06: run speed is walk_speed (4.6)  (4.60)
+  PASS  P06: stops in 0.05-0.3 s  (10 ticks)
+  PASS  P06: stopping distance is short but not a teleport  (0.33 m)
+  PASS  P06: sprint reaches 95%% speed within 0.9 s  (35 ticks)
+  PASS  P06: sprint is faster than run, unlimited (no stamina)  (8.20 m/s)
+  PASS  P06: sprint does not exceed sprint_speed  (8.20 m/s)
+  PASS  P06: holding walk gives the deliberate walk speed  (2.60 vs 2.60)
+  PASS  P06: locomotion state is WALK  (WALK)
+  PASS  P06: analog half-tilt moves at half speed  (2.30)
+  PASS  P06: a full diagonal is not faster than straight  (4.60 vs 4.60)
+  PASS  P06: a unit-length diagonal equals straight speed  (4.60)
+  PASS  P06: reversals never overshoot run speed  (2.09 m/s)
+  PASS  P06: rapid reversals stay grounded and finite
+  PASS  P06: reversals do not thrash the locomotion state  (1 changes)
+  PASS  P06: walking backwards latches the backward gait
+  PASS  P06: walking forward releases the backward gait
+  PASS  P06: sword stays drawn while moving
+  PASS  P06: movement with the sword drawn keeps run speed  (4.60)
+  PASS  P06: combat locomotion state is stable (IDLE->RUN)  (1 changes)
+  PASS  P06: climbs a 15 degree slope  (gain 2.29 m)
+  PASS  P06: stays grounded on a 15 degree slope  (150/150 ticks)
+  PASS  P06: climbs a 30 degree slope  (gain 3.97 m)
+  PASS  P06: stays grounded on a 30 degree slope  (150/150 ticks)
+  PASS  P06: climbs a 40 degree slope  (gain 4.53 m)
+  PASS  P06: stays grounded on a 40 degree slope  (150/150 ticks)
+  PASS  P06: a 55 degree slope (above floor_max_angle) cannot be walked up  (gain 0.00 m)
+  PASS  P06: walking downhill keeps the feet on the ground  (0 airborne ticks)
+  PASS  P06: climbs a 10-step staircase (0.18 m risers) onto the landing  (gain 1.82 m)
+  PASS  P06: walking down the staircase stays mostly on the steps  (0 airborne ticks of 180)
+  PASS  P06: a sprint into a wall does not pass or climb it  (z -5.14, wall face at -5.75)
+  PASS  P06: nor does it climb the wall  (0.00 m)
+  PASS  P06: a near head-on wall is slid along, not stuck to  (moved 2.93 m along the wall)
+  PASS  P06: ... while still being stopped by it
+  PASS  P06: a 2 cm terrain seam does not slow the Commander  (min 4.60 m/s)
+  PASS  P06: a 0.3 m drop is walked down, not fallen  (0 airborne ticks)
+  PASS  P06: a 3 m cliff is fallen from and landed on  (y -2.98)
+  PASS  P06 lock: mask is the OR of live tokens
+  PASS  P06 lock: releasing one of two MOVE locks does not unlock movement
+  PASS  P06 lock: releasing an unknown or already-released token is a no-op
+  PASS  P06 lock: releasing the last token frees everything
+  PASS  P06 lock: release_all(owner) frees only that owner's tokens
+  PASS  P06 lock: mask_changed reports new and old masks
+  PASS  P06 lock: a MOVE lock stops the Commander even with input held
+  PASS  P06 lock: state is not RUN while locked  (IDLE)
+  PASS  P06 lock: overlapping lock keeps the Commander still after the first releases
+  PASS  P06 lock: movement resumes after the last release
+  PASS  P06 lock: the PAUSE mask freezes movement input
+  PASS  P06 lock: movement resumes when PAUSE is released
+  PASS  P06: a paused tree does not move the Commander, and resumes cleanly
+  PASS  P06 scripted: refused for a token that does not hold MOVE
+  PASS  P06 scripted: accepted for a MOVE token
+  PASS  P06 scripted: the Commander walks to the target against held input  (0.18 m away)
+  PASS  P06 scripted: arrival is reported exactly once
+  PASS  P06 scripted: it is moving toward the target
+  PASS  P06 scripted: releasing the token cancels the scripted move
+  PASS  P06 scripted: the body stops after cancellation (no ghost walking)  (0.00 m/s)
+  PASS  P06 scripted: player control returns after cancellation
+  PASS  P06: a defeated Commander ignores input  (DEAD)
+  PASS  P06: movement returns after respawn  (RUN)
+  PASS  P06: riding reports MOUNTED
+  PASS  P06: the controller does not move the body while a horse carries it
+  PASS  P06: control returns after dismount
+
+[tests] 164 passed, 2 failed (76.5 s)

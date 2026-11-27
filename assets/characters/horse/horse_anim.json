@@ -1,0 +1,102 @@
+{
+ "bones": {
+  "bits": [
+   "bit_l",
+   "bit_r"
+  ],
+  "mane_chains": [
+   "mane_0",
+   "mane_1",
+   "mane_2",
+   "mane_3",
+   "mane_4"
+  ],
+  "saddle": "saddle",
+  "stirrups": [
+   "stirrup_l",
+   "stirrup_r"
+  ],
+  "tail_chain": [
+   "tail_2",
+   "tail_3",
+   "tail_4",
+   "tail_leaf"
+  ]
+ },
+ "clips": {
+  "death": {
+   "frames": 42,
+   "length": 1.3667,
+   "loop": false
+  },
+  "gallop": {
+   "frames": 14,
+   "length": 0.4333,
+   "loop": true,
+   "speed": 8.396
+  },
+  "graze": {
+   "frames": 80,
+   "length": 2.6333,
+   "loop": true
+  },
+  "head_shake": {
+   "frames": 36,
+   "length": 1.1667,
+   "loop": false
+  },
+  "idle": {
+   "frames": 80,
+   "length": 2.6333,
+   "loop": true
+  },
+  "lie_to_stand": {
+   "frames": 80,
+   "length": 2.6333,
+   "loop": false
+  },
+  "rear": {
+   "frames": 88,
+   "length": 2.9,
+   "loop": false
+  },
+  "sleep": {
+   "frames": 60,
+   "length": 1.9667,
+   "loop": true
+  },
+  "stamp": {
+   "frames": 30,
+   "length": 0.9667,
+   "loop": false
+  },
+  "startle": {
+   "frames": 48,
+   "length": 1.5667,
+   "loop": false
+  },
+  "trot": {
+   "frames": 22,
+   "length": 0.7,
+   "loop": true,
+   "speed": 3.008
+  },
+  "turn_left": {
+   "frames": 140,
+   "length": 4.6333,
+   "loop": false
+  },
+  "turn_right": {
+   "frames": 140,
+   "length": 4.6333,
+   "loop": false
+  },
+  "walk": {
+   "frames": 30,
+   "length": 0.9667,
+   "loop": true,
+   "speed": 1.715
+  }
+ },
+ "fps": 30
+}

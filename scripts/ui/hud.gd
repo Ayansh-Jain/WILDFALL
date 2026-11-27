@@ -1,7 +1,8 @@
 class_name HUD
 extends CanvasLayer
-## Crosshair, interaction prompt, toasts, loading screen, underwater tint and
-## the developer overlay. Built in code so it stays easy to restyle.
+## Crosshair, interaction prompt, toasts, story dialogue and objective, loading
+## screen, underwater tint and the developer overlay. Built in code so it stays
+## easy to restyle.
 
 const PROMPT_COLOR := Color(0.93, 0.88, 0.76)
 
@@ -10,12 +11,17 @@ var debug_lines: Callable  ## Returns extra overlay text from Main.
 
 var _crosshair: Crosshair
 var _prompt: Label
+var _prompt_refresh := 0.0
 var _toast: Label
 var _toast_tween: Tween
 var _loading: Control
 var _underwater: ColorRect
 var _debug: Label
 var _debug_timer := 0.0
+var _dialogue: PanelContainer
+var _speaker: Label
+var _line: Label
+var _objective: Label
 
 
 class Crosshair extends Control:
@@ -31,6 +37,7 @@ class Crosshair extends Control:
 
 
 func _ready() -> void:
+	add_to_group("hud")
 	layer = 10
 	_underwater = ColorRect.new()
 	_underwater.color = Color(0.03, 0.2, 0.24, 0.55)
@@ -73,6 +80,7 @@ func _ready() -> void:
 	_debug.visible = false
 	add_child(_debug)
 
+	_build_story_ui()
 	_loading = _build_loading()
 	add_child(_loading)
 
@@ -88,6 +96,69 @@ func _make_label(font_size: int, color: Color) -> Label:
 	l.add_theme_constant_override("shadow_offset_y", 2)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
+
+
+func _build_story_ui() -> void:
+	_dialogue = PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.02, 0.02, 0.025, 0.72)
+	style.border_color = Color(0.55, 0.47, 0.33, 0.6)
+	style.border_width_top = 1
+	style.content_margin_left = 22
+	style.content_margin_right = 22
+	style.content_margin_top = 10
+	style.content_margin_bottom = 12
+	_dialogue.add_theme_stylebox_override("panel", style)
+	_dialogue.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_dialogue.offset_left = -430
+	_dialogue.offset_right = 430
+	_dialogue.offset_top = -250
+	_dialogue.offset_bottom = -150
+	_dialogue.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dialogue.visible = false
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_speaker = _make_label(17, Color(0.86, 0.73, 0.5))
+	_speaker.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_line = _make_label(21, Color(0.92, 0.9, 0.85))
+	_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(_speaker)
+	box.add_child(_line)
+	_dialogue.add_child(box)
+	add_child(_dialogue)
+	_objective = _make_label(17, Color(0.86, 0.8, 0.66))
+	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_objective.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_objective.offset_left = -560
+	_objective.offset_right = -24
+	_objective.offset_top = 18
+	_objective.offset_bottom = 48
+	add_child(_objective)
+
+
+## Shows one line of story dialogue; an empty speaker shows narration.
+func show_dialogue(speaker: String, text: String) -> void:
+	_speaker.text = speaker.to_upper()
+	_speaker.visible = speaker != ""
+	_line.text = text
+	_dialogue.visible = true
+
+
+func hide_dialogue() -> void:
+	_dialogue.visible = false
+
+
+func dialogue_text() -> String:
+	return _line.text if _dialogue.visible else ""
+
+
+func set_objective(text: String) -> void:
+	_objective.text = "" if text == "" else "Objective: " + text
+
+
+func objective_text() -> String:
+	return _objective.text
 
 
 func _build_loading() -> Control:
@@ -149,20 +220,40 @@ func prompt_text() -> String:
 func _on_focus_changed(target: Interactable) -> void:
 	_crosshair.focused = target != null
 	_crosshair.queue_redraw()
-	if target:
-		_prompt.text = "[%s]  %s" % [Settings.get_binding_text("interact"), target.prompt_text]
-	else:
-		_prompt.text = ""
+	_update_interaction_prompt()
 
 
 func _process(delta: float) -> void:
 	if player:
 		_underwater.visible = player.is_camera_underwater() and not player.noclip
+		_prompt_refresh -= delta
+		if _prompt_refresh <= 0.0:
+			_prompt_refresh = 0.15
+			_update_interaction_prompt()
 	if _debug.visible:
 		_debug_timer -= delta
 		if _debug_timer <= 0.0:
 			_debug_timer = 0.25
 			_debug.text = _debug_text()
+
+
+func _update_interaction_prompt() -> void:
+	if player == null:
+		_prompt.text = ""
+		return
+	if player.is_sitting:
+		_prompt.text = ""
+		return
+	var interactor := player.get_node_or_null("Interactor") as PlayerInteractor
+	var target: Interactable = interactor.focused if interactor else null
+	if target and target.input_action != "sit":
+		_prompt.text = "[%s]  %s" % [Settings.get_binding_text(target.input_action), target.prompt_text]
+	elif player.can_offer_sit_prompt():
+		_prompt.text = ""
+	elif target and target.input_action != "sit":
+		_prompt.text = "[%s]  %s" % [Settings.get_binding_text(target.input_action), target.prompt_text]
+	else:
+		_prompt.text = ""
 
 
 func _debug_text() -> String:

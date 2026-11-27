@@ -8,6 +8,10 @@
 shader = ExtResource("1")
 shader_parameter/stone_tex = ExtResource("2")
 shader_parameter/stone_nrm = ExtResource("3")
-shader_parameter/scale = 0.3
-shader_parameter/moss_amount = 0.2
-shader_parameter/tint_strength = 0.15
+shader_parameter/scale = 0.26
+shader_parameter/normal_strength = 0.95
+shader_parameter/moss_color = Color(0.18, 0.26, 0.11, 1)
+shader_parameter/moss_amount = 0.36
+shader_parameter/tint_strength = 0.22
+shader_parameter/macro_strength = 0.24
+shader_parameter/macro_hue = 0.45

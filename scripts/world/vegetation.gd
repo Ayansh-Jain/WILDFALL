@@ -14,10 +14,12 @@ const RENDER := {
 	"dead_tree": [300.0, true],
 	"rock0": [260.0, true], "rock1": [260.0, true], "rock2": [260.0, true], "rock3": [260.0, true],
 	"log": [150.0, true], "bush0": [80.0, true, 170.0], "bush1": [80.0, true, 170.0], "bush2": [80.0, true, 170.0],
-	"fern": [50.0, false], "grass": [36.0, false], "pebble": [40.0, false], "reeds": [90.0, false], "mushrooms": [75.0, false],
+	"fern": [54.0, false], "grass": [50.0, false], "grass_tall": [64.0, false], "pebble": [40.0, false], "reeds": [95.0, false], "mushrooms": [75.0, false],
+	"flower0": [46.0, false], "flower1": [46.0, false], "flower2": [42.0, false], "flower3": [58.0, false], "flower4": [46.0, false],
+	"rush": [60.0, false], "mosspatch": [40.0, false], "branch": [60.0, false],
 }
 ## Ground clutter uses small chunks so it fades in smoothly around the player.
-const SMALL_CHUNK := ["grass", "fern", "pebble", "mushrooms"]
+const SMALL_CHUNK := ["grass", "grass_tall", "fern", "pebble", "mushrooms", "flower0", "flower1", "flower2", "flower3", "flower4", "rush", "mosspatch", "branch"]
 const SMALL_CHUNK_SIZE := 20.0
 
 var counts := {}
@@ -32,7 +34,9 @@ var _solid := {}          ## chunk key -> StaticBatch
 var _sight := {}          ## chunk key -> StaticBatch
 var _occupied := {}       ## Vector2i (3 m cell) -> [[Vector2, radius], ...]
 var _exclusions: Array = []  ## [[Vector2, radius], ...]
+var _excl_grid := {}         ## Vector2i (EXCL_CELL m) -> exclusions overlapping that cell
 var _shape_cache := {}
+const EXCL_CELL := 24.0
 
 
 func build(world: World) -> void:
@@ -40,7 +44,7 @@ func build(world: World) -> void:
 	_td = world.terrain_data
 	_chunk_size = _td.cell * world.layout.chunk_cells
 	_rng.seed = GameState.world_seed * 7919 + 17
-	for step in [_collect_exclusions, _scatter_trees, _scatter_logs, _scatter_rocks, _scatter_bushes, _scatter_clutter, _emit_multimeshes]:
+	for step in [_collect_exclusions, _scatter_trees, _scatter_logs, _scatter_rocks, _scatter_bushes, _scatter_clutter, _scatter_riverbank, _scatter_flower_patches, _emit_multimeshes]:
 		var t0 := Time.get_ticks_usec()
 		step.call()
 		step_ms[step.get_method()] = (Time.get_ticks_usec() - t0) / 1000
@@ -66,6 +70,8 @@ func _collect_exclusions() -> void:
 		if s["type"] == "shrine":
 			r = 12.0
 		_exclusions.append([WorldLayout.v2(s["center"]), r + 4.0])
+	for ex in L.list("vegetation_exclusions"):
+		_exclusions.append([WorldLayout.v2(ex["center"]), float(ex["radius"])])
 	for b in L.list("bridges"):
 		_exclusions.append([WorldLayout.v2(b["a"]), 7.0])
 		_exclusions.append([WorldLayout.v2(b["b"]), 7.0])
@@ -79,15 +85,38 @@ func _collect_exclusions() -> void:
 		for ex in _td.cave["exits"]:
 			var r: Rect2 = ex[0]
 			_exclusions.append([r.get_center(), 12.0])
+	var sites := _world.get_node_or_null("Sites/Structures")
+	if sites and "vegetation_blockers" in sites:
+		_exclusions.append_array(sites.vegetation_blockers)
+	# Bucket by grid cell so each query only tests nearby circles.
+	for e in _exclusions:
+		var c: Vector2 = e[0]
+		var reach: float = float(e[1]) + 3.0
+		for gz in range(floori((c.y - reach) / EXCL_CELL), floori((c.y + reach) / EXCL_CELL) + 1):
+			for gx in range(floori((c.x - reach) / EXCL_CELL), floori((c.x + reach) / EXCL_CELL) + 1):
+				var key := Vector2i(gx, gz)
+				if not _excl_grid.has(key):
+					_excl_grid[key] = []
+				_excl_grid[key].append(e)
 
 
 func _excluded(p: Vector2, r: float) -> bool:
-	for e in _exclusions:
+	for e in _excl_grid.get(Vector2i(floori(p.x / EXCL_CELL), floori(p.y / EXCL_CELL)), []):
 		if p.distance_to(e[0]) < e[1] + r:
 			return true
 	if not _td.cave.is_empty() and _td.cave["rect"].grow(3.0 + r).has_point(p):
 		return true
+	# Keep the curtain wall's footing clear on both sides.
+	if not _td.wall_dist.is_empty():
+		var wd := _td.wall_distance(p.x, p.y)
+		if wd > -7.0 - r and wd < 5.0 + r and _td.mountain_weight(p.x, p.y) < 0.5:
+			return true
 	return _td.is_hole_at(p.x, p.y)
+
+
+## Ground cover only matters where players can stand: inside the kingdom.
+func _inside(x: float, z: float) -> bool:
+	return _td.wall_dist.is_empty() or _td.wall_distance(x, z) < -1.0 or _td.mountain_weight(x, z) >= 0.5
 
 
 func _free_at(p: Vector2, r: float) -> bool:
@@ -170,7 +199,7 @@ func _sphere(radius: float) -> SphereShape3D:
 func _scatter_trees() -> void:
 	var half := _world.layout.half_size - 6.0
 	var wl := _world.water_level
-	_jittered_cells(4.4, half, func(x: float, z: float) -> void:
+	_jittered_cells(4.8, half, func(x: float, z: float) -> void:
 		var p := Vector2(x, z)
 		var f := _td.sample(_td.forest, x, z)
 		if _rng.randf() > f:
@@ -232,7 +261,8 @@ func _scatter_logs() -> void:
 		var shape := _cylinder(snappedf(0.34 * s, 0.02), snappedf(length, 0.1))
 		var col_xform := Transform3D(Basis(Vector3.UP, yaw) * Basis(Vector3.FORWARD, PI * 0.5),
 				Vector3(mid.x, y + 0.35 * s, mid.y))
-		_batch(_solid, mid, Layers.WORLD).add(shape, col_xform))
+		_batch(_solid, mid, Layers.WORLD).add(shape, col_xform)
+	)
 
 
 func _scatter_rocks() -> void:
@@ -259,6 +289,18 @@ func _scatter_rocks() -> void:
 		var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s)
 		var origin := _ground(x, z, 0.25 * s)
 		_add_instance(prop, Transform3D(basis, origin), _tint(0.12))
+		# Supporting smaller stones nestled around large landmark boulders.
+		if s >= 1.25:
+			var sup_count := 2 if s >= 1.7 else 1
+			for sc in sup_count:
+				var a := _rng.randf() * TAU
+				var dist := s * _rng.randf_range(0.75, 1.15)
+				var sx := x + cos(a) * dist
+				var sz := z + sin(a) * dist
+				if _td.sample(_td.trail_dist, sx, sz) >= 0.8 and not _excluded(Vector2(sx, sz), 0.35):
+					var ss := s * _rng.randf_range(0.24, 0.42)
+					var sb := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * ss)
+					_add_instance("rock%d" % _rng.randi_range(0, 3), Transform3D(sb, _ground(sx, sz, 0.22 * ss)), _tint(0.14))
 		if s >= 0.6:
 			var key := "%s_%.1f" % [prop, s]
 			if not _shape_cache.has(key):
@@ -269,14 +311,16 @@ func _scatter_rocks() -> void:
 
 
 func _scatter_bushes() -> void:
-	var half := _world.layout.playable_half + 10.0
-	_jittered_cells(3.6, half, func(x: float, z: float) -> void:
+	var half := maxf(_world.layout.playable_half + 10.0, _clutter_half())
+	_jittered_cells(4.2, half, func(x: float, z: float) -> void:
 		var u := _rng.randf()
-		if u > 0.7:
+		if u > 0.62:
+			return
+		if not _inside(x, z):
 			return
 		var f := _td.sample(_td.forest, x, z)
-		var edge := 0.25 if f > 0.08 and f < 0.45 else 0.0
-		if u > clampf(0.04 + f * 0.42 + edge, 0.0, 0.7):
+		var edge := 0.1 if f > 0.08 and f < 0.45 else 0.0
+		if u > clampf(0.02 + f * 0.31 + edge, 0.0, 0.48):
 			return
 		if _td.height_at(x, z) < _world.water_level + 0.5 or _td.normal_at(x, z).y < 0.8:
 			return
@@ -291,13 +335,23 @@ func _scatter_bushes() -> void:
 			_batch(_sight, p, Layers.FOLIAGE_SIGHT).add(_sphere(snappedf(0.8 * s, 0.05)), Transform3D(Basis.IDENTITY, origin + Vector3.UP * 0.6 * s)))
 
 
-func _scatter_clutter() -> void:
+## Half-extent that covers the whole walled kingdom.
+func _clutter_half() -> float:
 	var half := _world.layout.playable_half + 8.0
+	for p in _td.wall_points:
+		half = maxf(half, maxf(absf(p.x), absf(p.y)))
+	return minf(half, _world.layout.half_size - 2.0)
+
+
+func _scatter_clutter() -> void:
+	var half := _clutter_half()
 	var wl := _world.water_level
 	# Ferns under the canopy
-	_jittered_cells(2.4, half, func(x: float, z: float) -> void:
+	_jittered_cells(2.8, half, func(x: float, z: float) -> void:
 		var u := _rng.randf()
 		if u > 0.6:
+			return
+		if not _inside(x, z):
 			return
 		var f := _td.sample(_td.forest, x, z)
 		if u > f * 0.6:
@@ -307,7 +361,7 @@ func _scatter_clutter() -> void:
 		var s := _rng.randf_range(0.7, 1.35)
 		_add_instance("fern", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _ground(x, z, 0.05)), _tint(0.2)))
 	# Pebbles and small stones on the forest floor and along trails
-	_jittered_cells(3.0, half, func(x: float, z: float) -> void:
+	_jittered_cells(3.4, half, func(x: float, z: float) -> void:
 		var f := _td.sample(_td.forest, x, z)
 		if _rng.randf() > 0.12 + f * 0.4:
 			return
@@ -316,21 +370,31 @@ func _scatter_clutter() -> void:
 		var s := _rng.randf_range(0.07, 0.22)
 		var b := Basis(Vector3.UP, _rng.randf() * TAU) * Basis(Vector3.RIGHT, _rng.randf_range(-0.4, 0.4))
 		_add_instance("pebble", Transform3D(b.scaled(Vector3.ONE * s), _ground(x, z, 0.04 * s)), _tint(0.15)))
-	# Grass tufts in open ground
-	_jittered_cells(1.6, half, func(x: float, z: float) -> void:
-		var u := _rng.randf()
-		if u > 0.42:
-			return
+	# Grass fields in open ground: sweeping golden-sage drifts with height variation.
+	var drift_noise := FastNoiseLite.new()
+	drift_noise.seed = GameState.world_seed + 713
+	drift_noise.frequency = 0.022
+	var gold_noise := FastNoiseLite.new()
+	gold_noise.seed = GameState.world_seed + 719
+	gold_noise.frequency = 0.015
+	_jittered_cells(1.65, half, func(x: float, z: float) -> void:
+		var drift := smoothstep(-0.25, 0.45, drift_noise.get_noise_2d(x, z))
 		var f := _td.sample(_td.forest, x, z)
-		if u > (1.0 - f) * 0.42:
+		var chance := (1.0 - f * 0.9) * lerpf(0.14, 0.72, drift)
+		if _rng.randf() > chance:
+			return
+		if not _inside(x, z):
 			return
 		var h := _td.height_at(x, z)
-		if h < wl + 0.4 or h > 45.0 or _td.sample(_td.trail_dist, x, z) < 0.4 or _td.sample(_td.paving, x, z) > 0.3:
+		if h < wl + 0.35 or h > 46.0 or _td.sample(_td.trail_dist, x, z) < 0.35 or _td.sample(_td.paving, x, z) > 0.28:
 			return
-		if _td.normal_at(x, z).y < 0.82 or _td.is_hole_at(x, z):
+		if _td.normal_at(x, z).y < 0.80 or _td.is_hole_at(x, z):
 			return
-		var s := _rng.randf_range(0.7, 1.4)
-		_add_instance("grass", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _ground(x, z, 0.03)), _tint(0.2)))
+		var gold_w := smoothstep(-0.15, 0.45, gold_noise.get_noise_2d(x, z))
+		var is_tall := drift > 0.45 and _rng.randf() < (0.36 * drift)
+		var s := _rng.randf_range(0.85, 1.45) if is_tall else _rng.randf_range(0.75, 1.35)
+		var base_col := Color(0.84, 0.96, 0.74).lerp(Color(1.16, 0.98, 0.58), gold_w) * _rng.randf_range(0.88, 1.12)
+		_add_instance("grass_tall" if is_tall else "grass", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _ground(x, z, 0.04)), base_col))
 	# Reeds along the waterline
 	_jittered_cells(2.2, half, func(x: float, z: float) -> void:
 		if _td.sample(_td.water_influence, x, z) <= 0.0:
@@ -353,6 +417,88 @@ func _scatter_clutter() -> void:
 		if _td.sample(_td.trail_dist, x, z) < 0.6:
 			return
 		_add_instance("mushrooms", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), _ground(x, z, 0.02)), Color(1, 1, 1)))
+
+
+## Riverbank and lake-shore planting: rushes at the waterline, flowers in drifts
+## (one species dominates each patch), moss, pebbles and the odd fallen branch.
+## Lushness follows a low-frequency noise so some banks are bare and others full.
+func _scatter_riverbank() -> void:
+	var half := _world.layout.playable_half + 8.0
+	var wl := _world.water_level
+	var lush := FastNoiseLite.new()
+	lush.seed = GameState.world_seed + 401
+	lush.frequency = 0.03
+	var kind := FastNoiseLite.new()
+	kind.seed = GameState.world_seed + 402
+	kind.frequency = 0.07
+	_jittered_cells(1.0, half, func(x: float, z: float) -> void:
+		var wi := _td.sample(_td.water_influence, x, z)
+		if wi <= 0.04:
+			return
+		var above := _td.height_at(x, z) - wl
+		if above < 0.1 or above > 3.4:
+			return
+		if _td.normal_at(x, z).y < 0.84 or _td.is_hole_at(x, z):
+			return
+		if _td.sample(_td.trail_dist, x, z) < 0.7 or _excluded(Vector2(x, z), 0.3):
+			return
+		var l := smoothstep(0.32, 0.62, lush.get_noise_2d(x, z) * 0.5 + 0.5)
+		if _rng.randf() > l * (0.35 + 0.65 * wi):
+			if above < 0.6 and _rng.randf() < 0.08:
+				_add_instance("pebble", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.08, 0.2)), _ground(x, z, 0.02)), _tint(0.15))
+			return
+		# FastNoiseLite rarely leaves -0.5..0.5, so spread it over 0..1 for the species bands.
+		var k := clampf(kind.get_noise_2d(x, z) * 0.9 + 0.5, 0.0, 1.0)
+		var prop := "grass"
+		if above < 0.65 and _rng.randf() < 0.45:
+			prop = "rush"
+		elif above < 1.3 and k > 0.66:
+			prop = "flower3"
+		elif k < 0.3:
+			prop = "flower1"
+		elif k < 0.46:
+			prop = "flower0"
+		elif k < 0.6:
+			prop = "flower2" if _rng.randf() < 0.85 else "flower4"
+		elif _rng.randf() < 0.45:
+			prop = "flower0" if _rng.randf() < 0.7 else "flower4"
+		var s := _rng.randf_range(0.75, 1.3)
+		_add_instance(prop, Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _ground(x, z, 0.03)), _tint(0.12))
+		var r := _rng.randf()
+		if r < 0.05 and above < 1.0:
+			_add_instance("mosspatch", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.7, 1.3)), _ground(x + 0.4, z + 0.3, 0.02)), _tint(0.15))
+		elif r < 0.065:
+			_add_instance("branch", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), _ground(x - 0.5, z, 0.03)), _tint(0.1)))
+
+
+## Flower drifts requested by site builders (village gardens, story spots).
+func _scatter_flower_patches() -> void:
+	var sites := _world.get_node_or_null("Sites/Structures")
+	if not sites or not "flower_patches" in sites:
+		return
+	for patch in sites.flower_patches:
+		var c: Vector2 = patch[0]
+		var radius: float = patch[1]
+		var kind: String = patch[2]
+		var n := int(radius * radius * (2.2 if kind == "white" else (14.0 if kind.begins_with("memorial:") else 1.2)))
+		for i in n:
+			var a := _rng.randf() * TAU
+			var d := radius * sqrt(_rng.randf()) * _rng.randf_range(0.6, 1.0)
+			var p := c + Vector2(cos(a), sin(a)) * d
+			if _td.height_at(p.x, p.y) < _world.water_level + 0.08 or _td.sample(_td.trail_dist, p.x, p.y) < 0.5:
+				continue
+			var prop := "flower0"
+			if kind == "garden":
+				prop = ["flower2", "flower4", "flower1", "flower0", "flower2"][_rng.randi_range(0, 4)]
+			elif kind.begins_with("memorial:"):
+				# Restrained memorial palette: white, muted red, pale yellow and purple,
+				# one leading each cluster with a few of the others mixed in.
+				var lead := "flower" + kind.substr(9)
+				prop = lead if _rng.randf() < 0.72 else ["flower0", "flower4", "flower2", "flower3"][_rng.randi_range(0, 3)]
+			elif _rng.randf() < 0.2:
+				prop = "rush"
+			var s := _rng.randf_range(0.8, 1.25)
+			_add_instance(prop, Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _ground(p.x, p.y, 0.03)), _tint(0.1))
 
 
 func _emit_multimeshes() -> void:

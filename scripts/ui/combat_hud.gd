@@ -26,6 +26,9 @@ var _power_label: Label
 var _status_label: Label
 var _notice: Label
 var _slots_box: HBoxContainer
+var _controls_panel: PanelContainer
+var _controls_label: Label
+var _controls_text := ""
 var _feed: VBoxContainer
 var _vignette: ColorRect
 var _vignette_mat: ShaderMaterial
@@ -143,6 +146,7 @@ func _ready() -> void:
 	_stamina_bar.custom_minimum_size = Vector2(230, 10)
 	_stamina_bar.fill = Color(0.35, 0.7, 0.6)
 	left.add_child(_stamina_bar)
+	_stamina_bar.hide()
 
 	_slots_box = HBoxContainer.new()
 	_slots_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
@@ -154,11 +158,32 @@ func _ready() -> void:
 	_slots_box.add_theme_constant_override("separation", 6)
 	_slots_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_slots_box)
+	_controls_panel = PanelContainer.new()
+	_controls_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_controls_panel.offset_left = -520
+	_controls_panel.offset_right = 520
+	_controls_panel.offset_top = -116
+	_controls_panel.offset_bottom = -88
+	_controls_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var controls_style := StyleBoxFlat.new()
+	controls_style.bg_color = Color(0.025, 0.03, 0.035, 0.78)
+	controls_style.border_color = Color(0.48, 0.4, 0.29, 0.72)
+	controls_style.border_width_top = 1
+	controls_style.border_width_bottom = 1
+	controls_style.content_margin_left = 18
+	controls_style.content_margin_right = 18
+	controls_style.content_margin_top = 3
+	controls_style.content_margin_bottom = 3
+	_controls_panel.add_theme_stylebox_override("panel", controls_style)
+	_controls_label = _label(14, Color(0.91, 0.87, 0.78))
+	_controls_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_controls_panel.add_child(_controls_label)
+	add_child(_controls_panel)
 
 	_status_label = _label(14, EMBER)
 	_status_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_status_label.offset_top = -98
-	_status_label.offset_bottom = -76
+	_status_label.offset_top = -144
+	_status_label.offset_bottom = -122
 	_status_label.offset_left = -300
 	_status_label.offset_right = 300
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -177,8 +202,8 @@ func _ready() -> void:
 	_feed.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_feed.offset_left = -360
 	_feed.offset_right = -16
-	_feed.offset_top = 16
-	_feed.offset_bottom = 200
+	_feed.offset_top = 78
+	_feed.offset_bottom = 262
 	_feed.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_feed)
@@ -218,7 +243,7 @@ func _process(delta: float) -> void:
 		return
 	var id := player.player_id
 	var c := player.combatant
-	_health_bar.value = c.health
+	_health_bar.value = move_toward(_health_bar.value, float(c.health), delta * 100.0)
 	_health_bar.max_value = c.max_health
 	_health_bar.label = "%d / %d" % [c.health, c.max_health]
 	_health_bar.queue_redraw()
@@ -229,7 +254,9 @@ func _process(delta: float) -> void:
 	_stamina_bar.queue_redraw()
 	_power_label.text = "POWER  %d" % PowerScore.score(id)
 	_update_slots()
+	_update_weapon_controls()
 	_status_label.text = status_text()
+	_status_label.visible = not player.riding
 	_hurt = move_toward(_hurt, 0.0, delta * 1.5)
 	_vignette_mat.set_shader_parameter("intensity", _hurt + (0.25 if player.is_defeated else 0.0))
 	_hitmark.t = move_toward(_hitmark.t, 0.0, delta * 4.0)
@@ -257,6 +284,7 @@ func status_text() -> String:
 
 
 func _update_slots() -> void:
+	_slots_box.visible = not player.riding
 	var form := GameState.current_form(player.player_id)
 	if form.id != _form_id:
 		_form_id = form.id
@@ -283,6 +311,34 @@ func _update_slots() -> void:
 
 func slot_ids() -> Array:
 	return _slots.keys()
+
+
+func _update_weapon_controls() -> void:
+	var controls := ""
+	var rig: CommanderRig
+	var visual := player.get_node_or_null("AvatarVisual") as AvatarVisual
+	if visual and not GameState.is_revealed(player.player_id) and not Combat.is_transforming(player.player_id):
+		rig = visual.human_rig as CommanderRig
+	if player.riding:
+		controls = "HORSE   WASD Steer   %s Slash   %s Gait   %s Walk / trot   %s Dismount   %s Lamp" % [
+			Settings.get_binding_text("attack"), Settings.get_binding_text("sprint"), Settings.get_binding_text("crouch"),
+			Settings.get_binding_text("interact"), Settings.get_binding_text("toggle_lamp")]
+	elif GameState.is_revealed(player.player_id):
+		controls = "BEAST   %s Claw   %s Fire Breath   %s Dodge / Pounce   %s Ward / Roar" % [
+			Settings.get_binding_text("attack"), Settings.get_binding_text("heavy_attack"),
+			Settings.get_binding_text("ability_1"), Settings.get_binding_text("ability_2")]
+	elif rig and rig.sword_drawn and rig.offhand_sword != null and rig.offhand_sword.visible:
+		controls = "DUAL   LMB Combo   RMB Alt. cut   %s Finisher   %s Dodge   %s Ward   %s Sheathe   %s Army   %s Lamp" % [
+			Settings.get_binding_text("special_attack"), Settings.get_binding_text("ability_1"), Settings.get_binding_text("ability_2"),
+			Settings.get_binding_text("toggle_weapons"), Settings.get_binding_text("army_command"), Settings.get_binding_text("toggle_lamp")]
+	elif rig:
+		controls = "EXPLORE   LMB Dual strike   %s Finisher   %s Dodge   %s Ward   %s Draw both   %s Army   %s Lamp" % [
+			Settings.get_binding_text("special_attack"), Settings.get_binding_text("ability_1"), Settings.get_binding_text("ability_2"),
+			Settings.get_binding_text("toggle_weapons"), Settings.get_binding_text("army_command"), Settings.get_binding_text("toggle_lamp")]
+	if controls != _controls_text:
+		_controls_text = controls
+		_controls_label.text = controls
+		_controls_panel.visible = controls != ""
 
 
 # --- feed --------------------------------------------------------------------------------------
@@ -352,7 +408,10 @@ func _on_defeated(e: Dictionary) -> void:
 	var me := player.player_id
 	if e["victim"] == me:
 		feed("You were defeated", Color(1.0, 0.4, 0.35))
-		notice("Defeated - returning shortly", float(Combat.defeat_duration))
+		if Combat.respawn_mode(me) == Combat.Respawn.AUTO:
+			notice("Defeated - returning shortly", float(Combat.defeat_duration))
+		else:
+			notice("The commander has fallen", 2.5)
 	elif e["killer"] == me:
 		feed("You defeated %s" % GameState.public_view(e["victim"]).get("name", "?"), GOLD)
 	else:

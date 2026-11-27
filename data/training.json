@@ -1,0 +1,32 @@
+{
+  "_doc": "Interactive combat training (R02). {attack} {guard} {dodge} {draw} {finish} become the player's key names. Step ids are the contract with training_session.gd.",
+  "lessons": [
+    {"id": "twin_blades", "title": "Lesson 1 - The Twin Blades", "intro": "Two swords, one motion.",
+      "steps": [
+        {"id": "draw", "text": "Draw both swords with [{draw}]."},
+        {"id": "right", "text": "Strike the instructor with the right blade: [{attack}]."},
+        {"id": "left", "text": "Strike again, and press [{attack}] once more as the first cut ends for the left blade."},
+        {"id": "combo", "text": "Chain all three: press [{attack}] near the end of each cut."}
+      ]},
+    {"id": "warrior_guard", "title": "Lesson 2 - The Warrior's Guard", "intro": "Watch the shoulder, not the steel.",
+      "steps": [
+        {"id": "guard", "text": "Face him and raise your guard: hold [{guard}]."},
+        {"id": "parry", "text": "Parry: press [{guard}] just as his blow arrives (the bar runs out)."},
+        {"id": "opening", "text": "He is open. Counter now: [{attack}]."}
+      ]},
+    {"id": "balance", "title": "Lesson 3 - Strength Through Balance", "intro": "Do not swing at a closed guard.",
+      "steps": [
+        {"id": "perfect", "text": "Wait. Raise [{guard}] at the last instant for a perfect parry."},
+        {"id": "counter", "text": "Counter while he reels: [{attack}]."}
+      ]},
+    {"id": "falling_leaf", "title": "Lesson 4 - The Falling Leaf", "intro": "Some blows cannot be stopped. Be elsewhere.",
+      "steps": [
+        {"id": "dodge", "text": "His heavy blow cannot be guarded. Move [A]/[D] and dodge [{dodge}] as it falls."},
+        {"id": "punish", "text": "He has overreached. Close in and strike: [{attack}]."}
+      ]},
+    {"id": "trial", "title": "The Commander's Trial", "intro": "Three opponents. Only one commits at a time. Watch them all.",
+      "steps": [
+        {"id": "trial", "text": "Defeat them, showing a linked combination, a parry and a clean dodge."}
+      ]}
+  ]
+}

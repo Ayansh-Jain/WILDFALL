@@ -11,3 +11,4 @@ shader_parameter/stone_nrm = ExtResource("3")
 shader_parameter/scale = 0.22
 shader_parameter/moss_amount = 0.05
 shader_parameter/tint_strength = 0.2
+shader_parameter/macro_strength = 0.2

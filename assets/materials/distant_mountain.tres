@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://assets/materials/distant_mountain.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/textures/rock_face_diff.jpg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/textures/snow_02_diff.jpg" id="3"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/rock_tex = ExtResource("2")
+shader_parameter/snow_tex = ExtResource("3")
+shader_parameter/foothill_color = Color(0.15, 0.22, 0.14, 1)
+shader_parameter/ridge_color = Color(0.36, 0.39, 0.44, 1)
+shader_parameter/snow_color = Color(0.84, 0.87, 0.94, 1)
+shader_parameter/haze_color = Color(0.56, 0.64, 0.74, 1)
+shader_parameter/snow_line = 58.0
+shader_parameter/haze_start = 260.0
+shader_parameter/haze_end = 1350.0

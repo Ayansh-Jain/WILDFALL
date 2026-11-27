@@ -27,11 +27,14 @@ func _physics_process(_delta: float) -> void:
 	var best: Interactable = null
 	var best_score := -INF
 	var eye := player.eye_position()
-	var forward := -player.camera.global_transform.basis.z
+	# The head's facing, not the camera's: the third-person camera sits behind and tilts down.
+	var forward := -player.head.global_transform.basis.z
 	var space := get_world_3d().direct_space_state
 	for area in get_overlapping_areas():
 		var it := area as Interactable
 		if it == null or not it.enabled:
+			continue
+		if it.has_method("can_interact") and not it.can_interact(player):
 			continue
 		var p := it.focus_point()
 		var to := p - eye
@@ -53,12 +56,14 @@ func _physics_process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("interact") and not event.is_echo():
+	if focused == null or (player.is_sitting and focused.input_action != "sit"):
+		return
+	if event.is_action_pressed(focused.input_action) and not event.is_echo():
 		try_interact()
 
 
 func try_interact() -> bool:
-	if focused and focused.enabled:
+	if player.controls_enabled and not player.locks.blocks(ControlLock.INTERACT | ControlLock.PAUSE) and focused and focused.enabled:
 		focused.interact(player)
 		return true
 	return false

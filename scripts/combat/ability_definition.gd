@@ -4,7 +4,7 @@ extends Resource
 ## Abilities live in data/abilities/*.tres and are listed by a FormDefinition.
 ## Combat (the authority) reads these values; visuals only react to events.
 
-enum Kind { MELEE, LEAP, ROAR, DASH, WARD }
+enum Kind { MELEE, LEAP, ROAR, DASH, WARD, FLAME }
 
 @export var id := ""
 @export var display_name := ""
@@ -49,8 +49,25 @@ enum Kind { MELEE, LEAP, ROAR, DASH, WARD }
 @export var mark_duration := 0.0
 ## ROAR: slow duration. WARD: stun duration.
 @export var effect_duration := 0.0
+## FLAME: active breath duration and interval between damage ticks.
+@export var flame_duration := 1.2
+@export var damage_interval := 0.4
 @export var slow_factor := 1.0
 ## Uses per life; -1 = unlimited.
 @export var charges := -1
 ## WARD: only affects players in revealed monster form.
 @export var affects_revealed_only := false
+
+
+@export_group("Sword choreography")
+@export var animation_id := "sword_light"
+@export var sword := "right"
+@export var active_duration := 0.10
+@export var hit_times: PackedFloat32Array = PackedFloat32Array()
+@export var attack_class := "normal"
+@export var combo_next := ""
+@export var buffer_window := 0.25
+@export var guard_break := false
+@export var dodge_cancel := true
+@export var audio_event := "sword_swing"
+@export var visual_event := "blade_trail"

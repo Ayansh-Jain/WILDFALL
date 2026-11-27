@@ -18,13 +18,27 @@ const DEFAULT_BINDINGS := {
 	"move_right": ["Move right", ["key:D"]],
 	"jump": ["Jump / swim up", ["key:Space"]],
 	"sprint": ["Sprint", ["key:Shift"]],
+	"walk": ["Walk (hold)", ["key:Alt"]],
 	"crouch": ["Crouch", ["key:Ctrl", "key:C"]],
 	"interact": ["Interact", ["key:E"]],
+	"sit": ["Sit / stand", ["key:G"]],
 	"attack": ["Attack (sword / claw)", ["mouse:1"]],
-	"heavy_attack": ["Heavy Strike (beast)", ["mouse:2"]],
+	"special_attack": ["Finisher", ["key:Z"]],
+	"toggle_lamp": ["Toggle lamp", ["key:L"]],
+	"heavy_attack": ["Fire Breath (beast)", ["mouse:2"]],
 	"ability_1": ["Dodge / Pounce", ["key:Q"]],
 	"ability_2": ["Ward / Roar", ["key:R"]],
 	"transform": ["Transform / return to human", ["key:F"]],
+	"call_horse": ["Call your horse (whistle)", ["key:H"]],
+	"toggle_weapons": ["Draw / sheath both swords", ["key:X"]],
+	"strategy": ["Plan tactical deployment", ["key:M"]],
+	"world_map": ["World map", ["key:Tab"]],
+	"guide_wind": ["Follow the wind to your destination", ["key:V"]],
+	"army_command": ["Call / dismiss your army", ["key:T"]],
+	"guard": ["Guard / parry (hold)", ["mouse:2"]],
+	"training_skip": ["Training: skip lesson", ["key:N"]],
+	"training_leave": ["Training: leave", ["key:B"]],
+	"training_retry": ["Training / arena: retry", ["key:Enter"]],
 	"pause": ["Pause menu", ["key:Escape"]],
 	"debug_overlay": ["Debug overlay", ["key:F3"]],
 	"debug_los_probe": ["[Dev] Drop sight probe", ["key:F4"]],
@@ -39,14 +53,17 @@ const DEFAULT_BINDINGS := {
 ## Actions shown in the rebinding menu, in order.
 const REBINDABLE := [
 	"move_forward", "move_back", "move_left", "move_right",
-	"jump", "sprint", "crouch", "interact", "attack", "heavy_attack",
-	"ability_1", "ability_2", "transform", "debug_overlay",
+	"jump", "sprint", "walk", "crouch", "interact", "sit", "attack", "special_attack", "toggle_lamp", "heavy_attack",
+	"ability_1", "ability_2", "transform", "call_horse", "toggle_weapons", "guard", "army_command", "training_skip", "training_leave", "training_retry", "strategy", "world_map", "guide_wind", "debug_overlay",
 ]
 
 var mouse_sensitivity: float = 0.12  # degrees per pixel
 var invert_y: bool = false
 var fov: float = 75.0
 var head_bob: bool = true
+var camera_shake: float = 1.0  ## 0 = none, 1 = full
+var camera_distance: float = 1.0  ## follow distance multiplier
+var reduce_motion: bool = false  ## no shake, head bob or speed-related FOV changes
 var master_volume_db: float = 0.0
 
 var _overrides: Dictionary = {}  # action -> Array[String] of specs
@@ -108,6 +125,9 @@ func save() -> void:
 	cfg.set_value("general", "invert_y", invert_y)
 	cfg.set_value("general", "fov", fov)
 	cfg.set_value("general", "head_bob", head_bob)
+	cfg.set_value("general", "camera_shake", camera_shake)
+	cfg.set_value("general", "camera_distance", camera_distance)
+	cfg.set_value("general", "reduce_motion", reduce_motion)
 	cfg.set_value("general", "master_volume_db", master_volume_db)
 	for action in _overrides:
 		cfg.set_value("bindings", action, _overrides[action])
@@ -122,6 +142,9 @@ func _load() -> void:
 	invert_y = cfg.get_value("general", "invert_y", invert_y)
 	fov = cfg.get_value("general", "fov", fov)
 	head_bob = cfg.get_value("general", "head_bob", head_bob)
+	camera_shake = clampf(float(cfg.get_value("general", "camera_shake", camera_shake)), 0.0, 1.0)
+	camera_distance = clampf(float(cfg.get_value("general", "camera_distance", camera_distance)), 0.7, 1.4)
+	reduce_motion = bool(cfg.get_value("general", "reduce_motion", reduce_motion))
 	master_volume_db = cfg.get_value("general", "master_volume_db", master_volume_db)
 	if cfg.has_section("bindings"):
 		for action in cfg.get_section_keys("bindings"):

@@ -231,5 +231,8 @@ func _parse_args() -> Dictionary:
 		if not arg.begins_with("--"):
 			continue
 		var kv := arg.substr(2).split("=", true, 1)
-		out[kv[0]] = kv[1] if kv.size() > 1 else true
+		var value: Variant = true
+		if kv.size() > 1:
+			value = kv[1]
+		out[kv[0]] = value
 	return out

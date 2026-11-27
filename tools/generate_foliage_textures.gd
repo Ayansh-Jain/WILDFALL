@@ -90,79 +90,87 @@ func _leaf(img: Image, c: Vector2, angle: float, length: float, width: float, co
 
 
 func _green(h_shift := 0.0) -> Color:
-	var h := rng.randf_range(0.22, 0.3) + h_shift
-	var c := Color.from_hsv(h, rng.randf_range(0.5, 0.75), rng.randf_range(0.32, 0.55))
+	var h := rng.randf_range(0.20, 0.30) + h_shift
+	var c := Color.from_hsv(h, rng.randf_range(0.45, 0.72), rng.randf_range(0.32, 0.58))
 	return c
 
 
 func _leaves() -> Image:
-	var img := _new(512, Color(0.2, 0.3, 0.12))
+	var img := _new(512, Color(0.24, 0.34, 0.14))
 	var center := Vector2(256, 256)
-	# Twigs fanning out from the bottom centre, leaves along them.
 	var twigs: Array = []
-	for i in 7:
-		var a := deg_to_rad(-90.0 + rng.randf_range(-70, 70))
-		var start := Vector2(256 + rng.randf_range(-30, 30), 500)
-		var end := center + Vector2.from_angle(a) * rng.randf_range(150, 230)
+	for i in 8:
+		var a := deg_to_rad(-90.0 + rng.randf_range(-72, 72))
+		var start := Vector2(256 + rng.randf_range(-34, 34), 502)
+		var end := center + Vector2.from_angle(a) * rng.randf_range(155, 236)
 		twigs.append([start, end])
-		_stroke(img, start, end, 4.0, 1.5, Color(0.25, 0.18, 0.12, 1), Color(0.3, 0.24, 0.16, 1))
-	for i in 420:
+		_stroke(img, start, end, 4.2, 1.4, Color(0.24, 0.17, 0.11, 1), Color(0.32, 0.24, 0.15, 1))
+	for i in 480:
 		var tw: Array = twigs[rng.randi_range(0, twigs.size() - 1)]
-		var t := rng.randf_range(0.25, 1.0)
-		var p: Vector2 = (tw[0] as Vector2).lerp(tw[1], t) + Vector2(rng.randf_range(-40, 40), rng.randf_range(-40, 40))
-		if p.distance_to(center) > 245:
+		var t := rng.randf_range(0.22, 1.0)
+		var p: Vector2 = (tw[0] as Vector2).lerp(tw[1], t) + Vector2(rng.randf_range(-42, 42), rng.randf_range(-42, 42))
+		if p.distance_to(center) > 246:
 			continue
 		var ang := (p - (tw[0] as Vector2)).angle() + rng.randf_range(-1.2, 1.2)
-		var length := rng.randf_range(26, 44)
-		_leaf(img, p, ang, length, length * rng.randf_range(0.42, 0.55), _green())
+		var length := rng.randf_range(24, 44)
+		var col := _green(rng.randf_range(-0.03, 0.02))
+		if t > 0.7:
+			col = col.lerp(Color(0.54, 0.58, 0.24), rng.randf_range(0.05, 0.25))
+		_leaf(img, p, ang, length, length * rng.randf_range(0.42, 0.56), col)
 	return img
 
 
 func _needles() -> Image:
-	var img := _new(512, Color(0.1, 0.2, 0.15))
-	# u: 0 = trunk end (x = 0), 1 = branch tip (x = 512). Card is wide, so taper.
+	var img := _new(512, Color(0.11, 0.22, 0.15))
 	var main_a := Vector2(0, 256)
-	var main_b := Vector2(500, 250)
+	var main_b := Vector2(502, 250)
 	_stroke(img, main_a, main_b, 6.0, 1.5, Color(0.22, 0.15, 0.1, 1), Color(0.28, 0.2, 0.12, 1))
 	var twigs: Array = [[main_a, main_b]]
-	for i in 16:
+	for i in 18:
 		var t := rng.randf_range(0.05, 0.88)
 		var base := main_a.lerp(main_b, t)
 		var side := 1.0 if i % 2 == 0 else -1.0
-		var reach := (1.0 - t) * 220.0 + 40.0
-		var end := base + Vector2(reach * 0.75, side * reach * 0.6)
-		end.y = clampf(end.y, 20, 492)
+		var reach := (1.0 - t) * 224.0 + 42.0
+		var end := base + Vector2(reach * 0.75, side * reach * 0.62)
+		end.y = clampf(end.y, 18, 494)
 		twigs.append([base, end])
 		_stroke(img, base, end, 3.0, 1.0, Color(0.24, 0.17, 0.11, 1), Color(0.3, 0.22, 0.14, 1))
 	for tw in twigs:
 		var a: Vector2 = tw[0]
 		var b: Vector2 = tw[1]
 		var dir := (b - a).normalized()
-		var steps := int(a.distance_to(b) / 3.5)
+		var steps := int(a.distance_to(b) / 3.0)
 		for s in steps:
 			var p := a.lerp(b, float(s) / steps)
 			for k in 2:
 				var side := 1.0 if k == 0 else -1.0
-				var nd := dir.rotated(side * deg_to_rad(rng.randf_range(40, 70)))
-				var nl := rng.randf_range(22, 36)
-				var col := Color.from_hsv(rng.randf_range(0.36, 0.44), rng.randf_range(0.45, 0.65), rng.randf_range(0.22, 0.4))
-				_stroke(img, p, p + nd * nl, 2.1, 1.0, col, col.lightened(0.15))
+				var nd := dir.rotated(side * deg_to_rad(rng.randf_range(38, 68)))
+				var nl := rng.randf_range(22, 38)
+				var col := Color.from_hsv(rng.randf_range(0.34, 0.43), rng.randf_range(0.42, 0.64), rng.randf_range(0.24, 0.44))
+				_stroke(img, p, p + nd * nl, 2.0, 0.9, col, col.lightened(0.18))
 	return img
 
 
 func _grass() -> Image:
-	var img := _new(256, Color(0.25, 0.35, 0.15))
-	for i in 46:
-		var x := rng.randf_range(20, 236)
-		var h := rng.randf_range(110, 240)
-		var lean := rng.randf_range(-40, 40)
+	var img := _new(256, Color(0.34, 0.40, 0.18))
+	# Dense arching meadow grass blades + taller golden seed-head stalks.
+	for i in 68:
+		var x := rng.randf_range(14, 242)
+		var h := rng.randf_range(105, 244)
+		var lean := rng.randf_range(-46, 46)
 		var base := Vector2(x, 255)
 		var tip := Vector2(x + lean, 255 - h)
-		var mid := base.lerp(tip, 0.5) + Vector2(lean * 0.2, 0)
-		var col := Color.from_hsv(rng.randf_range(0.2, 0.28), rng.randf_range(0.45, 0.7), rng.randf_range(0.3, 0.5))
-		var tip_col := col.lerp(Color(0.62, 0.6, 0.35), rng.randf_range(0.1, 0.5))
-		_stroke(img, base, mid, rng.randf_range(3.0, 4.5), 2.4, col.darkened(0.2), col)
-		_stroke(img, mid, tip, 2.4, 0.6, col, tip_col)
+		var mid := base.lerp(tip, 0.52) + Vector2(lean * 0.14, -8.0)
+		var col := Color.from_hsv(rng.randf_range(0.16, 0.26), rng.randf_range(0.42, 0.68), rng.randf_range(0.32, 0.54))
+		var tip_col := col.lerp(Color(0.78, 0.68, 0.34), rng.randf_range(0.25, 0.68))
+		var w0 := rng.randf_range(2.6, 4.0)
+		_stroke(img, base, mid, w0, w0 * 0.62, col.darkened(0.28), col)
+		_stroke(img, mid, tip, w0 * 0.62, 0.55, col, tip_col)
+		if i % 6 == 0 and h > 185.0:
+			# Subtle pale golden seed plume near the blade tip.
+			var plume_a := mid.lerp(tip, 0.65)
+			var plume_c := Color(0.84, 0.76, 0.48, 1.0)
+			_stroke(img, plume_a, tip, 2.4, 1.1, col.lerp(plume_c, 0.5), plume_c)
 	return img
 
 

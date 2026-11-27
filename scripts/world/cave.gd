@@ -17,6 +17,7 @@ var world: World
 var info: Dictionary
 var path_cells: Array[Vector2i] = []
 var players_inside := 0
+var sealed_entrances: Array[StaticBody3D] = []
 
 var _kit: MeshKit
 var _glow: MeshKit
@@ -58,7 +59,8 @@ func build(w: World) -> void:
 				continue
 			if ch == "m" and _outside_grid(n):
 				_mouth_facade(c, dir, floor_h, ch_h)
-				continue  # this is the open mouth
+				_seal_mouth(c, dir, floor_h, ch_h)
+				continue  # preserved entrance behind removable rockfall
 			var t := 1.2
 			var e2 := c + Vector2(dir) * (cs * 0.5 + t * 0.5)
 			var wall_h := ch_h + 2.0
@@ -274,3 +276,37 @@ func _zone() -> void:
 			if players_inside == 0:
 				player_exited.emit())
 	add_child(area)
+
+
+func _seal_mouth(c: Vector2, direction: Vector2i, floor_h: float, height: float) -> void:
+	var width: float=info["cell"]
+	var edge:=c+Vector2(direction)*width*0.5
+	var body:=StaticBody3D.new()
+	body.name="SealedEntrance%d" % sealed_entrances.size()
+	body.collision_layer=Layers.WORLD
+	add_child(body)
+	body.position=Vector3(edge.x,floor_h+height*0.5,edge.y)
+	var size:=Vector3(2.8,height+1.0,width+1.0) if direction.x!=0 else Vector3(width+1.0,height+1.0,2.8)
+	var collision:=CollisionShape3D.new()
+	var shape:=BoxShape3D.new()
+	shape.size=size
+	collision.shape=shape
+	body.add_child(collision)
+	var kit:=MeshKit.new(720+sealed_entrances.size(),0.15)
+	kit.add_box(Transform3D.IDENTITY,size,CAVE_ROCK)
+	for row in 3:
+		for side in [-1.0,0.0,1.0]:
+			var offset:=Vector3(-direction.y*side*width*0.35,(row-1)*height/3,direction.x*side*width*0.35)
+			kit.add_blob(Transform3D(Basis.IDENTITY.scaled(Vector3(1.2,1.0,1.2)),offset),width*0.42,CAVE_ROCK*1.1,true,0.25)
+	var mesh:=MeshInstance3D.new()
+	mesh.mesh=kit.to_mesh(STONE_MAT)
+	body.add_child(mesh)
+	sealed_entrances.append(body)
+
+
+## Future story unlock removes only the rockfalls; the cave is never rebuilt.
+func unlock_entrances() -> void:
+	for entrance in sealed_entrances:
+		if is_instance_valid(entrance):
+			entrance.queue_free()
+	sealed_entrances.clear()

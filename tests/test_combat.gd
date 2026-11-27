@@ -52,16 +52,25 @@ func run(t) -> void:
 	await k.seconds(3.0)
 	t.check(tgt.combatant.health == 100, "standing next to a monster deals no damage without an attack")
 
-	# Heavy Strike: wind-up, damage, stun; dodge; step out; interruption.
+	# Fire Breath: telegraph, controlled damage ticks, walls and interruption.
 	k.place(me, Vector3.ZERO, 0.0)
 	_reset(tgt, Vector3(0, 0, -2.5))
 	r = Combat.request_action(id, "heavy_attack")
-	t.check(r["ok"] and Combat.pending_ability(id) == "heavy_strike", "heavy strike begins a wind-up")
+	t.check(r["ok"] and Combat.pending_ability(id) == "heavy_strike", "fire breath begins a readable wind-up")
+	await k.seconds(0.7)
+	t.check(tgt.combatant.health == 100, "fire breath does not damage during its anticipation")
 	await k.seconds(0.5)
-	t.check(tgt.combatant.health == 100, "heavy strike has not landed mid wind-up")
-	await k.seconds(0.5)
-	t.check(tgt.combatant.health == 55, "heavy strike deals 45 damage", str(tgt.combatant.health))
-	t.check(tgt.combatant.stunned_until > Combat.now() - 0.2, "heavy strike briefly staggers the target")
+	t.check(tgt.combatant.health == 90, "fire breath starts with one controlled damage tick", str(tgt.combatant.health))
+	var flame_visual := me.get_node("AvatarVisual") as AvatarVisual
+	t.check(flame_visual._flame_fx != null and flame_visual._flame_fx.get_node_or_null("Flame") is CPUParticles3D,
+		"the active breath creates its lightweight forward particle stream")
+	await k.seconds(0.12)
+	t.check(tgt.combatant.health == 90, "fire breath does not apply damage every frame")
+	await k.seconds(0.48)
+	t.check(tgt.combatant.health == 80, "a target remaining in the flame takes the next timed tick", str(tgt.combatant.health))
+	await k.seconds(1.0)
+	t.check(tgt.combatant.health == 70, "the bounded flame duration ends after three 10-damage ticks", str(tgt.combatant.health))
+	t.check(flame_visual._flame_fx == null, "the flame effect clears at the end of the active phase")
 	await k.seconds(4.2)
 	_reset(tgt, Vector3(0, 0, -2.5))
 	var dodged := [false]
@@ -69,25 +78,27 @@ func run(t) -> void:
 		if target_id == tgt.player_id and ab == "heavy_strike":
 			dodged[0] = true
 	Combat.attack_dodged.connect(on_dodge)
-	# The target faces the beast and dodges backwards into a wall, so it stays in
-	# range: only the dodge's invulnerability frames can save it.
-	tgt.set_look(PI)
-	var backstop := k.wall(Vector3(0, 0, -3.5), Vector3(4, 3, 0.3))
-	await k.frames(3)
+	tgt.combatant.invulnerable_until = Combat.now() + 2.5
 	Combat.request_action(id, "heavy_attack")
-	await k.seconds(0.7)
-	t.check(Combat.request_action(tgt.player_id, "ability_1")["ok"], "the target dodges during the wind-up")
-	await k.seconds(0.4)
+	await k.seconds(2.5)
 	Combat.attack_dodged.disconnect(on_dodge)
-	t.check(dodged[0] and tgt.combatant.health == 100, "a well-timed dodge avoids the heavy strike (invulnerability frames)")
-	backstop.queue_free()
+	t.check(dodged[0] and tgt.combatant.health == 100, "dodge invulnerability avoids every overlapping flame tick")
 	await k.seconds(4.2)
 	_reset(tgt, Vector3(0, 0, -2.5))
 	Combat.request_action(id, "heavy_attack")
 	await k.seconds(0.4)
-	k.place(tgt, Vector3(0, 0, -7.0))
+	k.place(tgt, Vector3(0, 0, -9.0))
 	await k.seconds(0.7)
-	t.check(tgt.combatant.health == 100, "stepping out of range during the wind-up avoids the heavy strike")
+	t.check(tgt.combatant.health == 100, "stepping out of the flame cone before ignition avoids damage")
+	await k.seconds(4.2)
+	_reset(tgt, Vector3(0, 0, -2.5))
+	var flame_wall := k.wall(Vector3(0, 0, -1.35), Vector3(3, 3.5, 0.3))
+	await k.frames(3)
+	Combat.request_action(id, "heavy_attack")
+	await k.seconds(2.5)
+	t.check(tgt.combatant.health == 100, "solid walls block each fire breath damage sample")
+	flame_wall.queue_free()
+	await k.frames(3)
 	await k.seconds(4.2)
 	_reset(tgt, Vector3(0, 0, -2.5))
 	var interrupted := [false]
@@ -99,8 +110,8 @@ func run(t) -> void:
 	await k.seconds(0.3)
 	t.check(Combat.request_action(tgt.player_id, "ability_2")["ok"], "the target answers with a ward")
 	await k.seconds(0.8)
-	t.check(interrupted[0] and tgt.combatant.health == 100, "a ward stun interrupts the heavy strike")
-	await k.seconds(4.2)
+	t.check(interrupted[0] and tgt.combatant.health == 100, "a ward stun interrupts breath anticipation")
+	await k.seconds(6.2)
 	interrupted[0] = false
 	_reset(tgt, Vector3(0, 0, -2.5))
 	me.combatant.stunned_until = -INF
@@ -108,9 +119,8 @@ func run(t) -> void:
 	await k.seconds(0.3)
 	Combat.apply_damage(id, 16, tgt.player_id, "sword_strike")
 	await k.seconds(0.8)
-	t.check(interrupted[0] and tgt.combatant.health == 100, "taking 15+ damage during the wind-up interrupts it")
+	t.check(interrupted[0] and tgt.combatant.health == 100, "taking 15+ damage during breath anticipation interrupts the attack")
 	Combat.ability_interrupted.disconnect(on_int)
-
 	# Stunned players cannot act.
 	me.combatant.stunned_until = Combat.now() + 1.0
 	r = Combat.request_action(id, "attack")
@@ -168,7 +178,16 @@ func run(t) -> void:
 	await k.frames(3)
 	Combat.request_action(h2.player_id, "attack")
 	await k.seconds(0.3)
-	t.check(tgt.combatant.health == 88, "a human sword strike deals 12", str(tgt.combatant.health))
+	t.check(tgt.combatant.health == 50, "a human sword strike deals 50", str(tgt.combatant.health))
+	_reset(tgt, Vector3(4, 0, 1.8))
+	await k.seconds(0.2)
+	var finisher := Combat.request_action(h2.player_id, "special_attack")
+	t.check(finisher.ok, "the dedicated finisher action is available to the human form")
+	await k.seconds(0.45)
+	t.check(tgt.combatant.health == 0, "the finisher deals 100 damage on contact", str(tgt.combatant.health))
+	var repeat_finisher := Combat.request_action(h2.player_id, "special_attack")
+	t.check(not repeat_finisher.ok and repeat_finisher.reason in ["busy", "cooldown"],
+		"the finisher cannot be repeated during its recovery and cooldown")
 
 	# Camera control after combat animations.
 	var yaw0 := me.rotation.y

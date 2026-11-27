@@ -21,6 +21,7 @@ func run(t) -> void:
 	# 1. Collect once.
 	var scroll: Scroll = get_tree().get_nodes_in_group("scroll")[0]
 	var other := k.dummy(Vector3(6, 0, 0))
+	var before := CombatKit.tree_signature(me.get_node("AvatarVisual"))
 	t.check(scroll.collect(me), "local player collects the scroll")
 	t.check(GameState.has_monster(id) and GameState.record(id).monster_id == "ember_beast", "collector receives the Ember Beast identity")
 	t.check(GameState.get_state(id) == PlayerState.State.MONSTER_HIDDEN, "collector starts MONSTER_HIDDEN (no forced transformation)")
@@ -42,7 +43,16 @@ func run(t) -> void:
 	t.check(GameState.private_view(id)["monster_id"] == "ember_beast", "private view (for the owner) includes the identity")
 	var sa := CombatKit.tree_signature(me.get_node("AvatarVisual"))
 	var sb := CombatKit.tree_signature(other.get_node("AvatarVisual"))
-	t.check(sa == sb, "hidden monster's visible node tree is identical to a human's", CombatKit.first_diff(sa, sb))
+	# The local player shows the realistic commander body, other avatars the explorer
+	# (chosen by locality, never by identity; every observer sees all others as
+	# explorers). Compare like with like, and the same body before/after the identity.
+	var same_body: bool = me.get_node("AvatarVisual").human_rig.get_script() == other.get_node("AvatarVisual").human_rig.get_script()
+	if same_body:
+		t.check(sa == sb, "hidden monster's visible node tree is identical to a human's", CombatKit.first_diff(sa, sb))
+	else:
+		t.check(sa == before, "hidden monster's visible node tree is identical to its human body's", CombatKit.first_diff(sa, before))
+		t.check(not me.get_node("AvatarVisual").human_rig is HumanRig and other.get_node("AvatarVisual").human_rig is HumanRig,
+			"body style follows locality only (local commander, others explorer)")
 	var hunter := k.dummy(Vector3(-6, 0, 0), SimBot.Role.HUNTER)
 	var ha := CombatKit.tree_signature(hunter)
 	var hb := CombatKit.tree_signature(other)

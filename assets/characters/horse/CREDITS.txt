@@ -1,0 +1,12 @@
+The commander's warhorse (horse.glb) — built by Art/horse/pipeline (Blender 5.2 scripts).
+
+- Skeleton, skin weights of the base mesh and the clips idle, walk, trot, gallop (Run),
+  turn_left/right, rear, death, graze (Eating), sleep, lie_to_stand: Mesh2Motion
+  (https://github.com/Mesh2Motion), CC0 1.0. The base mesh was reshaped, remeshed and
+  re-sculpted; new limbs, hooves, ears, eyes, hair cards, tack, textures and the clips
+  startle, head_shake and stamp were made for WildFall.
+- Griffin emblem on the saddle cloth: "Griffin symbol" by Delapouite, game-icons.net,
+  CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/).
+
+commander_ride.glb (the commander's riding, mount and dismount clips) was authored
+against this horse by Art/horse/pipeline/08_rider.py from the commander's own rig.

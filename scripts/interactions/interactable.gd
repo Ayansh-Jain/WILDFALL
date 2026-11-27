@@ -6,6 +6,7 @@ extends Area3D
 signal interacted(by: Node)
 
 @export var prompt_text := "Use"
+@export var input_action := "interact"
 @export var enabled := true
 ## Point used for focus and line-of-sight checks, relative to this node.
 @export var focus_offset := Vector3.ZERO
@@ -22,6 +23,11 @@ func _ready() -> void:
 
 func focus_point() -> Vector3:
 	return global_transform * focus_offset
+
+
+func can_interact(by: Node) -> bool:
+	var owner := get_parent()
+	return owner.can_interact(by) if owner and owner.has_method("can_interact") else enabled
 
 
 func interact(by: Node) -> void:

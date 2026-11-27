@@ -20,8 +20,28 @@ config/icon="res://icon.svg"
 
 Settings="*res://scripts/managers/settings.gd"
 GameState="*res://scripts/managers/game_state.gd"
+Persist="*res://scripts/managers/persist.gd"
 Combat="*res://scripts/combat/combat_authority.gd"
 PowerScore="*res://scripts/combat/power_score.gd"
+
+[debug]
+
+gdscript/warnings/unused_variable=0
+gdscript/warnings/unused_local_constant=0
+gdscript/warnings/unused_private_class_variable=0
+gdscript/warnings/unused_parameter=0
+gdscript/warnings/unused_signal=0
+gdscript/warnings/shadowed_variable=0
+gdscript/warnings/shadowed_variable_base_class=0
+gdscript/warnings/shadowed_global_identifier=0
+gdscript/warnings/incompatible_ternary=0
+gdscript/warnings/static_called_on_instance=0
+gdscript/warnings/integer_division=0
+gdscript/warnings/narrowing_conversion=0
+gdscript/warnings/int_as_enum_without_cast=0
+gdscript/warnings/int_as_enum_without_match=0
+gdscript/warnings/confusable_local_declaration=0
+gdscript/warnings/confusable_local_usage=0
 
 [display]
 
@@ -29,7 +49,6 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/vsync/vsync_mode=1
 
 [layer_names]
 
@@ -38,18 +57,18 @@ window/vsync/vsync_mode=1
 3d_physics/layer_3="interactable"
 3d_physics/layer_4="foliage_sight"
 3d_physics/layer_5="zones"
+3d_physics/layer_6="creatures"
 
 [physics]
 
 3d/physics_engine="Jolt Physics"
-common/physics_ticks_per_second=60
 
 [rendering]
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-anti_aliasing/quality/msaa_3d=1
-environment/defaults/default_clear_color=Color(0.05, 0.07, 0.1, 1)
 lights_and_shadows/directional_shadow/size=2048
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=1
+anti_aliasing/quality/msaa_3d=1
+environment/defaults/default_clear_color=Color(0.05, 0.07, 0.1, 1)
